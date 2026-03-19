@@ -63,7 +63,7 @@ return (
                 element={
                     <ProtectedRoute>
                         <Header />
-                        <MainCanteen addToCart={addToCart} />
+                        <MainCanteen cart={cart} setCart={setCart}  />
                         <Footer />
                     </ProtectedRoute>
                 }
@@ -75,7 +75,7 @@ return (
                 element={
                     <ProtectedRoute>
                         <Header />
-                        <HangoutCafe addToCart={addToCart} />
+                        <HangoutCafe cart={cart} setCart={setCart} />
                         <Footer />
                     </ProtectedRoute>
                 }
