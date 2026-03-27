@@ -43,7 +43,7 @@ function Header() {
                 ) : (
                     <button
                         onClick={() => navigate("/login")}
-                        className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2 rounded-xl font-semibold shadow-md hover:scale-105 transition duration-300"
+                        className="bg-linear-to-r from-amber-500 to-orange-500 text-white px-6 py-2 rounded-xl font-semibold shadow-md hover:scale-105 transition duration-300"
                     >
                         Login
                     </button>

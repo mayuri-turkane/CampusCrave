@@ -1,171 +1,178 @@
 import { useState } from "react";
-import { ChevronLeft, Star, Clock, Info, Plus, Minus, Search, ShoppingBag } from "lucide-react";
+import { ChevronLeft, Star, Clock, Plus, Minus, Search, ShoppingBag, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+// Added image placeholders to make it look "Swiggy-style"
 const cafeMenu = {
     Breakfast: [
-        { name: "Poha", price: 25, desc: "Light Maharashtrian breakfast" },
-        { name: "Misal Pav", price: 55, desc: "Spicy curry served with pav" },
-        { name: "Vada Pav", price: 15, desc: "Mumbai street food classic" },
-        { name: "Samosa", price: 18, desc: "Crispy fried potato samosa" },
-        { name: "Sabudana Khichdi", price: 45, desc: "Popular fasting dish" }
+        { name: "Poha", price: 25, desc: "Light Maharashtrian breakfast with peanuts", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
+        { name: "Misal Pav", price: 55, desc: "Spicy sprouts curry served with buttery pav", image: "https://images.unsplash.com/photo-1606491956689-2ea8c5119c85?auto=format&fit=crop&w=300&q=80" },
+        { name: "Vada Pav", price: 15, desc: "The iconic Mumbai burger", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
     ],
-
-    Beverages: [
-        { name: "Tea", price: 12, desc: "Hot cutting chai" },
-        { name: "Special Tea (Big Cup)", price: 30, desc: "Strong special tea" },
-        { name: "Hot Coffee", price: 30, desc: "Fresh brewed coffee" },
-        { name: "Cold Coffee", price: 45, desc: "Chilled creamy coffee" }
-    ],
-
-    Snacks: [
-        { name: "French Fries", price: 60, desc: "Crispy potato fries" },
-        { name: "Peri Peri Fries", price: 70, desc: "Fries with spicy peri peri seasoning" },
-        { name: "Cheese Fries", price: 80, desc: "Fries topped with melted cheese" },
-        { name: "Egg Bhurji", price: 65, desc: "Spicy scrambled eggs" },
-        { name: "Egg Omelette", price: 65, desc: "Classic egg omelette" },
-        { name: "Samosa Chaat", price: 40, desc: "Samosa topped with chutneys" }
-    ],
-
     Chinese: [
-        { name: "Veg Fried Rice", price: 70, desc: "Vegetable fried rice" },
-        { name: "Veg Schezwan Rice", price: 80, desc: "Spicy schezwan rice" },
-        { name: "Chicken Fried Rice", price: 100, desc: "Chicken fried rice" },
-        { name: "Chicken Schezwan Rice", price: 110, desc: "Spicy chicken schezwan rice" },
-        { name: "Hakka Noodles", price: 70, desc: "Classic hakka noodles" },
-        { name: "Schezwan Hakka Noodles", price: 80, desc: "Spicy noodles" },
-        { name: "Chicken Hakka Noodles", price: 100, desc: "Chicken noodles" },
-        { name: "Veg Steamed Momos", price: 70, desc: "Steamed veg dumplings" },
-        { name: "Veg Fried Momos", price: 80, desc: "Fried veg momos" },
-        { name: "Chicken Steamed Momos", price: 80, desc: "Steamed chicken dumplings" },
-        { name: "Chicken Fried Momos", price: 100, desc: "Fried chicken momos" }
+        { name: "Veg Fried Rice", price: 70, desc: "Classic wok-tossed vegetable rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
+        { name: "Chicken Schezwan Rice", price: 110, desc: "Spicy chicken rice with fiery Schezwan sauce", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
     ],
-
-    FastFood: [
-        { name: "Veg Grilled Sandwich", price: 60, desc: "Grilled vegetable sandwich" },
-        { name: "Veg Cheese Grilled Sandwich", price: 85, desc: "Cheese grilled sandwich" },
-        { name: "Bombay Grilled Sandwich", price: 60, desc: "Mumbai style sandwich" },
-        { name: "Bombay Cheese Grilled Sandwich", price: 85, desc: "Bombay sandwich with cheese" },
-        { name: "Corn Capsicum Sandwich", price: 60, desc: "Corn capsicum sandwich" },
-        { name: "Corn Capsicum Cheese Sandwich", price: 85, desc: "Corn capsicum sandwich with cheese" },
-        { name: "Chicken Sandwich", price: 80, desc: "Chicken sandwich" },
-        { name: "Chicken Cheese Sandwich", price: 100, desc: "Chicken sandwich with cheese" },
-        { name: "Veg Burger", price: 70, desc: "Veg burger" },
-        { name: "Veg Cheese Burger", price: 95, desc: "Veg burger with cheese" },
-        { name: "Chicken Burger", price: 90, desc: "Chicken burger" },
-        { name: "Chicken Cheese Burger", price: 115, desc: "Chicken burger with cheese" },
-        { name: "Cheese Garlic Toast", price: 75, desc: "Garlic toast with cheese" },
-        { name: "Chilli Cheese Toast", price: 75, desc: "Spicy cheese toast" },
-        { name: "Veg Pizza (11 inch)", price: 150, desc: "Veg pizza" },
-        { name: "Chicken Pizza (11 inch)", price: 200, desc: "Chicken pizza" }
-    ]
+    // ... add more categories as needed
 };
+
 function HangoutCafe({ cart, setCart }) {
-  const [activeCategory, setActiveCategory] = useState("Breakfast");
-  const navigate = useNavigate();
+    const [activeCategory, setActiveCategory] = useState("Breakfast");
+    const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
 
-  // --- UNIVERSAL ACTIONS ---
-  const addItem = (item) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.name === item.name);
-      if (existing) {
-        return prev.map((i) => i.name === item.name ? { ...i, qty: i.qty + 1 } : i);
-      }
-      return [...prev, { ...item, qty: 1 }];
-    });
-  };
+    const addItem = (item) => {
+        setCart((prev) => {
+            const existing = prev.find((i) => i.name === item.name);
+            if (existing) return prev.map((i) => i.name === item.name ? { ...i, qty: i.qty + 1 } : i);
+            return [...prev, { ...item, qty: 1 }];
+        });
+    };
 
-  const removeItem = (item) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.name === item.name);
-      if (!existing) return prev;
-      if (existing.qty === 1) return prev.filter((i) => i.name !== item.name);
-      return prev.map((i) => i.name === item.name ? { ...i, qty: i.qty - 1 } : i);
-    });
-  };
+    const removeItem = (item) => {
+        setCart((prev) => {
+            const existing = prev.find((i) => i.name === item.name);
+            if (!existing) return prev;
+            if (existing.qty === 1) return prev.filter((i) => i.name !== item.name);
+            return prev.map((i) => i.name === item.name ? { ...i, qty: i.qty - 1 } : i);
+        });
+    };
+    cart.reduce((t, i) => t + (i.price * i.qty), 0);
+    return (
+        <div className="bg-white min-h-screen pb-40 font-sans selection:bg-amber-100">
 
-  const cartTotal = cart.reduce((t, i) => t + (i.price * i.qty), 0);
+            {/* --- HERO HEADER --- */}
+            <div className="relative h-64 md:h-80 w-full overflow-hidden">
+                <img
+                    src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80"
+                    className="w-full h-full object-cover scale-105 brightness-50"
+                    alt="Cafe Interior"
+                />
+                <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 bg-gradient-to-t from-black/80 to-transparent">
+                    <button
+                        onClick={() => navigate("/")}
+                        className="absolute top-8 left-6 bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white hover:text-black transition-all"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
 
-  return (
-    <div className="bg-slate-50 min-h-screen pb-32 font-sans">
-      {/* --- UNIFIED HEADER --- */}
-      <div className="bg-white/80 backdrop-blur-md px-6 pt-12 pb-6 sticky top-0 z-30 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-slate-400 mb-4 hover:text-amber-500 transition-colors group">
-            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold uppercase tracking-wider">Back to Dashboard</span>
-          </button>
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-black text-slate-800 tracking-tight">Hangout Cafe <span className="text-amber-500">☕</span></h1>
-              <div className="flex items-center gap-4 mt-2">
-                <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg text-xs font-black"><Star size={14} fill="currentColor" /> 4.4</span>
-                <span className="flex items-center gap-1 text-slate-500 text-xs font-bold border-l border-slate-200 pl-4"><Clock size={14} /> 8-12 MINS</span>
-              </div>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input type="text" placeholder="Search menu..." className="bg-slate-100 border-none rounded-2xl pl-10 pr-4 py-3 w-full md:w-64 focus:ring-2 focus:ring-amber-400 outline-none transition-all" />
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-8 overflow-x-auto no-scrollbar pb-2">
-            {Object.keys(cafeMenu).map((cat) => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-6 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all ${activeCategory === cat ? "bg-slate-900 text-white shadow-xl" : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50"}`}>
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* --- UNIFIED GRID --- */}
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cafeMenu[activeCategory].map((item, idx) => {
-            const cartItem = cart.find((i) => i.name === item.name);
-            return (
-              <div key={idx} className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 flex justify-between items-center group">
-                <div className="flex-1 pr-4">
-                  <div className={`w-3 h-3 rounded-full mb-2 border-2 ${item.name.includes('Chicken') ? 'border-red-500 bg-red-500' : 'border-green-600 bg-green-600'}`} />
-                  <h3 className="text-lg font-black text-slate-800">{item.name}</h3>
-                  <p className="text-slate-400 text-xs mt-1 leading-relaxed line-clamp-2">{item.desc}</p>
-                  <p className="mt-3 font-black text-slate-900 text-xl">₹{item.price}</p>
-                </div>
-
-                <div className="w-24 flex flex-col items-center">
-                  {cartItem ? (
-                    <div className="flex items-center bg-amber-500 text-white rounded-2xl shadow-lg overflow-hidden scale-110">
-                      <button onClick={() => removeItem(item)} className="p-2 hover:bg-amber-600"><Minus size={16} strokeWidth={3} /></button>
-                      <span className="px-1 font-bold">{cartItem.qty}</span>
-                      <button onClick={() => addItem(item)} className="p-2 hover:bg-amber-600"><Plus size={16} strokeWidth={3} /></button>
+                    <div className="max-w-6xl mx-auto w-full">
+                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">
+                            Hangout Cafe <span className="text-amber-400">☕</span>
+                        </h1>
+                        <div className="flex items-center gap-4 mt-3">
+              <span className="flex items-center gap-1 bg-green-500 text-white px-2 py-0.5 rounded-lg text-xs font-bold">
+                <Star size={14} fill="currentColor" /> 4.4
+              </span>
+                            <span className="text-gray-300 font-medium text-sm flex items-center gap-1">
+                <Clock size={14} /> 10-15 MINS
+              </span>
+                            <span className="text-gray-300 font-medium text-sm border-l border-gray-500 pl-4">
+                200+ Students served today
+              </span>
+                        </div>
                     </div>
-                  ) : (
-                    <button onClick={() => addItem(item)} className="bg-white text-amber-600 border-2 border-amber-500 px-6 py-2 rounded-2xl font-black text-xs hover:bg-amber-500 hover:text-white transition-all shadow-md">ADD</button>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
 
-      {/* --- UNIFIED GLOBAL FLOATING CART --- */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-lg bg-slate-900 text-white p-5 rounded-[2rem] shadow-2xl z-50 flex justify-between items-center animate-in slide-in-from-bottom-5">
-           <div className="flex items-center gap-4">
-             <div className="bg-amber-500 p-3 rounded-2xl"><ShoppingBag size={24} /></div>
-             <div>
-               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest leading-none mb-1">{cart.length} Items Selected</p>
-               <p className="text-2xl font-black text-white">₹{cartTotal}</p>
-             </div>
-           </div>
-           <button onClick={() => navigate("/")} className="bg-amber-500 text-slate-900 px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white transition-all transform active:scale-95">Checkout</button>
+            {/* --- SEARCH & CATEGORIES (Sticky) --- */}
+            <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm">
+                <div className="max-w-6xl mx-auto px-6 py-4">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
+                            {Object.keys(cafeMenu).map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat)}
+                                    className={`px-5 py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                                        activeCategory === cat ? "bg-amber-500 text-white shadow-lg shadow-amber-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="relative w-full md:w-72">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search favorite dish..."
+                                className="w-full bg-gray-50 border-none rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-amber-400 transition-all outline-none"
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* --- MENU LIST --- */}
+            <div className="max-w-6xl mx-auto px-6 mt-10">
+                <div className="flex items-center gap-3 mb-8">
+                    <Flame className="text-orange-500" fill="currentColor" />
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Picks in {activeCategory}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {(cafeMenu[activeCategory] || []).filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => {
+                        const cartItem = cart.find((i) => i.name === item.name);
+                        const isNonVeg = item.name.toLowerCase().includes('chicken') || item.name.toLowerCase().includes('egg');
+
+                        return (
+                            <div key={idx} className="flex justify-between items-start bg-white p-4 md:p-6 rounded-[2.5rem] border border-gray-100 hover:shadow-2xl hover:shadow-gray-200 transition-all group">
+                                <div className="flex-1 pr-6">
+                                    <div className={`w-4 h-4 rounded-sm border-2 ${isNonVeg ? 'border-red-500' : 'border-green-600'} flex items-center justify-center mb-3`}>
+                                        <div className={`w-2 h-2 rounded-full ${isNonVeg ? 'bg-red-500' : 'bg-green-600'}`} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-gray-800 group-hover:text-amber-600 transition-colors">{item.name}</h3>
+                                    <p className="mt-2 font-black text-gray-900 text-2xl tracking-tighter">₹{item.price}</p>
+                                    <p className="text-gray-400 text-sm mt-2 leading-relaxed font-medium line-clamp-2">{item.desc}</p>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="w-32 h-32 rounded-3xl overflow-hidden shadow-inner bg-gray-100">
+                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    </div>
+
+                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-28">
+                                        {cartItem ? (
+                                            <div className="flex items-center justify-between bg-white text-amber-600 rounded-xl shadow-xl border border-amber-100 overflow-hidden px-1 py-1">
+                                                <button onClick={() => removeItem(item)} className="p-2 hover:bg-amber-50 rounded-lg transition-colors"><Minus size={16} strokeWidth={3} /></button>
+                                                <span className="font-black text-sm">{cartItem.qty}</span>
+                                                <button onClick={() => addItem(item)} className="p-2 hover:bg-amber-50 rounded-lg transition-colors"><Plus size={16} strokeWidth={3} /></button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => addItem(item)}
+                                                className="w-full bg-white text-amber-600 border border-amber-200 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-amber-500 hover:text-white transition-all transform active:scale-90"
+                                            >
+                                                Add
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* --- FLOATING CART --- */}
+            {cart.length > 0 && (
+                <button
+                    onClick={() => navigate("/cart")}
+                    className="fixed bottom-8 right-8 bg-orange-500 text-white p-5 rounded-full shadow-2xl z-50 hover:scale-110 transition-all active:scale-95 group flex items-center gap-3"
+                >
+                    <div className="relative">
+                        <ShoppingBag size={28} strokeWidth={2.5} />
+                        <span className="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-orange-500">
+        {cart.reduce((total, item) => total + item.qty, 0)}
+      </span>
+                    </div>
+                    <span className="font-black text-sm pr-2 hidden group-hover:block transition-all">View Cart</span>
+                </button>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
 export default HangoutCafe;

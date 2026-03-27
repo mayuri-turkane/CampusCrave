@@ -7,7 +7,7 @@ function Menu() {
     return (
         <div className="min-h-screen pt-28 px-10 bg-gradient-to-br from-orange-50 to-amber-100">
 
-            {/* Sexy Menu Bar */}
+            {/* Menu Bar */}
             <div className="flex justify-center mb-12">
                 <div className="flex bg-white shadow-xl rounded-full p-2">
 
