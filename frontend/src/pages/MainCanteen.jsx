@@ -2,17 +2,82 @@ import { useState } from "react";
 import { ChevronLeft, Star, Clock, Plus, Minus, Search, ShoppingBag, Flame, Leaf } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import PohaImg from "../assets/images/Pohe.jpg";
+import IdliImg from "../assets/images/Idli.png";
+import DosaImg from "../assets/images/south.png";
+import SabudanaImg from "../assets/images/sabudana_khichdi.jpg";
+import UpmaImg from "../assets/images/Upma.png";
+import VadapavImg from "../assets/images/Vadapav.png";
+import MisalImg from "../assets/images/misal_pav.jpg";
+import DabeliImg from "../assets/images/Dabeli.png";
+import SabudanavadaImg from "../assets/images/Sabudanavada.png";
+import FriesImg from "../assets/images/Fries.jpg";
+import SandwichImg from "../assets/images/sandwich.jpg";
+import OmleteImg from "../assets/images/Omlete.png";
+import DhoklaImg from "../assets/images/Dhokla.png";
+import  TeaImg from "../assets/images/Tea.jpg";
+import  hotCoffeeImg from "../assets/images/coffee.jpg";
+import  coldcoffeeImg from "../assets/images/Cold_coffee.jpg";
+import  TaakImg from "../assets/images/Taak.png";
+import  DahiImg from "../assets/images/Dahi.jpg";
+import  PavbhajiImg from "../assets/images/Pavbhaji.png";
+import  CholebhatureImg from "../assets/images/Cholebhature.png";
+import  NoodelesImg from "../assets/images/Noodles.png";
+import  MaggieImg from "../assets/images/Maggie.jpg";
+import  AlooparathaImg from "../assets/images/Aloo_paratha.png";
+import  FriedRiceImg from "../assets/images/FriedRice.png";
+import  PastaImg from "../assets/images/passta.jpg";
+
+
+
 const menuData = {
-  Breakfast: [
-    { name: "Poha", price: 20, desc: "Fresh and light breakfast with peanuts and curry leaves", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
-    { name: "Idli", price: 30, desc: "3 pieces of soft idli with coconut chutney & sambar", image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=300&q=80" },
-    { name: "Dosa", price: 50, desc: "Crispy golden dosa with potato masala", image: "https://images.unsplash.com/photo-1541014741259-df549fa3bb87?auto=format&fit=crop&w=300&q=80" },
-    { name: "Misal Pav", price: 60, desc: "Spicy Maharashtrian sprouts curry with buttery pav", image: "https://images.unsplash.com/photo-1606491956689-2ea8c5119c85?auto=format&fit=crop&w=300&q=80" },
+  "Morning Kickstart": [
+    { name: "Poha", price: 20, desc: "Light Maharashtrian breakfast", image: PohaImg },
+    { name: "Idli", price: 30, desc: "Soft idli with chutney & sambar", image:IdliImg },
+    { name: "Upma", price: 30, desc: "Healthy semolina breakfast", image: UpmaImg },
+    { name: "Dosa", price: 50, desc: "Crispy dosa with chutney", image: DosaImg },
+    { name: "Vada Sambar", price: 40, desc: "Crispy vada with sambar", image: DosaImg },
+    { name: "Sabudana Khichdi", price: 45, desc: "Fasting special dish", image: SabudanaImg }
   ],
+
+  "Street Cravings": [
+    { name: "Vada Pav", price: 20, desc: "Mumbai street food", image: VadapavImg },
+    { name: "Samosa", price: 20, desc: "Crispy samosa", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
+    { name: "Misal Pav", price: 60, desc: "Spicy curry with pav", image:MisalImg},
+    { name: "Dabeli", price: 30, desc: "Spicy dabeli", image:DabeliImg },
+    { name: "Sabudana Vada", price: 40, desc: "Fried sabudana snack", image: SabudanavadaImg }
+  ],
+
+  "Crispy Bites & Quick Fix": [
+    { name: "French Fries", price: 60, desc: "Crispy fries", image:FriesImg },
+    { name: "Peri Peri Fries", price: 70, desc: "Spicy fries", image:FriesImg },
+    { name: "Sandwich", price: 50, desc: "Veg sandwich", image:SandwichImg },
+    { name: "Omelette", price: 40, desc: "Egg omelette", image: OmleteImg },
+    { name: "Dhokla", price: 40, desc: "Soft Gujarati snack", image: DhoklaImg }
+  ],
+
+  "Sip & Chill": [
+    { name: "Tea", price: 12, desc: "Regular chai", image:TeaImg},
+    { name: "Coffee", price: 30, desc: "Hot coffee", image: hotCoffeeImg},
+    { name: "Cold Coffee", price: 45, desc: "Chilled coffee", image:coldcoffeeImg },
+    { name: "Taak", price: 20, desc: "Refreshing buttermilk", image: TaakImg },
+    { name: "Dahi", price: 25, desc: "Fresh curd", image: DahiImg }
+  ],
+
+  "Desi & Global Meals": [
+    { name: "Pav Bhaji", price: 70, desc: "Spicy mashed veggies", image:PavbhajiImg },
+    { name: "Chole Bhature", price: 70, desc: "Punjabi special meal", image: CholebhatureImg },
+    { name: "Aloo Paratha", price: 50, desc: "Stuffed paratha with butter", image: AlooparathaImg },
+    { name: "Fried Rice", price: 80, desc: "Veg fried rice", image: FriedRiceImg},
+    { name: "Noodles", price: 70, desc: "Hakka noodles", image: NoodelesImg},
+    { name: "Pasta", price: 90, desc: "Creamy pasta", image: PastaImg },
+    { name: "Maggi (Plain)", price: 40, desc: "Simple maggi", image: MaggieImg },
+    { name: "Maggi (Masala)", price: 50, desc: "Spicy maggi", image: MaggieImg }
+  ]
 };
 
 function MainCanteen({ cart, setCart }) {
-  const [activeCategory, setActiveCategory] = useState("Breakfast");
+  const [activeCategory, setActiveCategory] = useState("Morning Kickstart");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 

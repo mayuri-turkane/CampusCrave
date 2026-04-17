@@ -2,18 +2,70 @@ import { useState } from "react";
 import { ChevronLeft, Star, Clock, Plus, Minus, Search, ShoppingBag, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import PohaImg from "../assets/images/Pohe.jpg";
+import  sabudanaImg from "../assets/images/sabudana_khichdi.jpg";
+import  misalImg from "../assets/images/misal_pav.jpg";
+import  TeaImg from "../assets/images/Tea.jpg";
+import  hotCoffeeImg from "../assets/images/coffee.jpg";
+import  coldcoffeeImg from "../assets/images/Cold_coffee.jpg";
+import  FriesImg from "../assets/images/Fries.jpg";
+import  NoodlesImg from "../assets/images/Noodles.png";
+import  sandwichImg from "../assets/images/sandwich.jpg";
+import  MaggieImg from "../assets/images/Maggie.jpg";
+import  BurgerImg from "../assets/images/burger.jpg";
+import  PizzaImg from "../assets/images/Pizza.jpg";
+import  MomosImg from "../assets/images/Momos.jpg";
+import  VadapavImg from "../assets/images/Vadapav.png";
+
 // Added image placeholders to make it look "Swiggy-style"
 const cafeMenu = {
-    Breakfast: [
-        { name: "Poha", price: 25, desc: "Light Maharashtrian breakfast with peanuts", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
-        { name: "Misal Pav", price: 55, desc: "Spicy sprouts curry served with buttery pav", image: "https://images.unsplash.com/photo-1606491956689-2ea8c5119c85?auto=format&fit=crop&w=300&q=80" },
-        { name: "Vada Pav", price: 15, desc: "The iconic Mumbai burger", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80" },
-    ],
-    Chinese: [
-        { name: "Veg Fried Rice", price: 70, desc: "Classic wok-tossed vegetable rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-        { name: "Chicken Schezwan Rice", price: 110, desc: "Spicy chicken rice with fiery Schezwan sauce", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-    ],
-    // ... add more categories as needed
+        Breakfast: [
+            { name: "Poha", price: 25, desc: "Light Maharashtrian breakfast with peanuts", image: PohaImg },
+            { name: "Vada Pav", price: 15, desc: "Mumbai's iconic street food burger", image: VadapavImg },
+            { name: "Samosa", price: 18, desc: "Crispy fried snack with spicy filling", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80"},
+            { name: "Sabudana Khichdi", price: 45, desc: "Light and healthy fasting dish", image: sabudanaImg },
+        ],
+
+        Beverages: [
+            { name: "Tea", price: 12, desc: "Regular chai", image: TeaImg },
+            { name:"Cold coffee", price: 50, desc: "Strong and refreshing Cold coffee", image: coldcoffeeImg  },
+            { name: "Hot Coffee", price: 30, desc: "Freshly brewed hot coffee", image:hotCoffeeImg },
+        ],
+
+        Snack_Corner: [
+            { name: "French Fries", price: 60, desc: "Crispy salted fries", image: FriesImg },
+            { name: "Peri Peri Fries", price: 70, desc: "Spicy peri peri fries", image: FriesImg },
+            { name: "Cheese Fries", price: 80, desc: "Loaded cheesy fries", image: FriesImg },
+            { name: "Egg Bhurji", price: 65, desc: "Spicy scrambled eggs", image: "https://images.unsplash.com/photo-1604908176997-431b58c1a8c5?auto=format&fit=crop&w=300&q=80" },
+            { name: "Egg Omelette", price: 65, desc: "Classic omelette", image: "https://images.unsplash.com/photo-1604908176997-431b58c1a8c5?auto=format&fit=crop&w=300&q=80" },
+            { name: "Samosa Chaat", price: 40, desc: "Tangy and spicy chaat", image: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=300&q=80" },
+        ],
+
+        Chinese_Corner: [
+            { name: "Veg Fried Rice", price: 70, desc: "Classic vegetable fried rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
+            { name: "Veg Schezwan Rice", price: 80, desc: "Spicy schezwan rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
+            { name: "Chicken Fried Rice", price: 100, desc: "Fried rice with chicken", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
+            { name: "Chicken Schezwan Rice", price: 110, desc: "Spicy chicken schezwan rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
+            { name: "Hakka Noodles", price: 70, desc: "Classic hakka noodles", image: NoodlesImg  },
+            { name: "Chicken Hakka Noodles", price: 100, desc: "Chicken hakka noodles", image: NoodlesImg },
+            { name: "Veg Steamed Momos", price: 70, desc: "Steamed veg dumplings", image: MomosImg },
+            { name: "Veg Fried Momos", price: 80, desc: "Fried veg dumplings", image: MomosImg },
+            { name: "Chicken Steamed Momos", price: 80, desc: "Steamed chicken momos", image:MomosImg},
+            { name: "Chicken Fried Momos", price: 100, desc: "Fried chicken momos", image:MomosImg },
+        ],
+
+        Between_the_Breads: [
+            { name: "Veg Grilled Sandwich", price: 60, desc: "Grilled veg sandwich", image: sandwichImg },
+            { name: "Veg Cheese Grilled Sandwich", price: 85, desc: "Cheesy grilled sandwich", image:sandwichImg },
+            { name: "Chicken Sandwich", price: 80, desc: "Simple chicken sandwich", image:sandwichImg },
+            { name: "Veg Burger", price: 70, desc: "Classic veg burger", image:BurgerImg },
+            { name: "Veg Cheese Burger", price: 95, desc: "Burger with cheese", image: BurgerImg },
+            { name: "Chicken Burger", price: 90, desc: "Juicy chicken burger", image:BurgerImg },
+            { name: "Chicken Cheese Burger", price: 115, desc: "Loaded chicken cheese burger", image: BurgerImg },
+            { name: "Veg Pizza (11 inch)", price: 150, desc: "Classic veg pizza", image:PizzaImg },
+            { name: "Chicken Pizza (11 inch)", price: 200, desc: "Chicken loaded pizza", image: PizzaImg },
+        ],
+
 };
 
 function HangoutCafe({ cart, setCart }) {

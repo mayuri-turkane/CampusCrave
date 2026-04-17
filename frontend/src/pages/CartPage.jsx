@@ -8,6 +8,34 @@ function CartPage({cart, setCart, groups = []}) {
 
     // --- NEW STATE FOR SCHEDULING ---
     const [orderType, setOrderType] = useState("asap"); // "asap" or "scheduled"
+    const placeOrderAPI = () => {
+        console.log("API CALLED 🚀");
+
+        const formattedItems = cart.map(item => ({
+            name: item.name,
+            quantity: item.qty,
+            price: item.price
+        }));
+
+        fetch("http://127.0.0.1:5000/order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                user_id: 1,
+                items: formattedItems,
+                total_price: total
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                alert("Order placed successfully 🎉");
+                setCart([]);
+            })
+            .catch(err => console.error(err));
+    };
     const [selectedTime, setSelectedTime] = useState(null);
 
     const timeSlots = ["12:15 PM", "12:30 PM", "12:45 PM", "01:00 PM", "01:15 PM", "01:30 PM", "04:30 PM"];
@@ -177,6 +205,34 @@ function CartPage({cart, setCart, groups = []}) {
                         const owners = item.owners || ["You"];
                         const isSharedByAll = owners.length === currentMembers.length && currentMembers.length > 1;
 
+                        const placeOrderAPI = () => {
+                            console.log("API CALLED 🚀");
+
+                            const formattedItems = cart.map(item => ({
+                                name: item.name,
+                                quantity: item.qty,
+                                price: item.price
+                            }));
+
+                            fetch("http://127.0.0.1:5000/order", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    user_id: 1,
+                                    items: formattedItems,
+                                    total_price: total
+                                })
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    console.log(data);
+                                    alert("Order placed successfully 🎉");
+                                    setCart([]);
+                                })
+                                .catch(err => console.error(err));
+                        };
                         return (
                             <div key={idx}
                                  className="bg-white rounded-[2.8rem] p-7 shadow-sm border border-slate-100 transition-all hover:shadow-xl hover:shadow-slate-200/50">
@@ -265,7 +321,7 @@ function CartPage({cart, setCart, groups = []}) {
                             if (orderType === "scheduled" && !selectedTime) {
                                 return alert("Please select a pickup time first! 🕒");
                             }
-                            alert(`Order Successful! 🎉\nMode: ${orderType.toUpperCase()}\nTime: ${orderType === 'asap' ? 'Now' : selectedTime}\nTotal: ₹${total}`);
+                            placeOrderAPI();
                         }}
                         className={`w-full py-6 rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95 flex flex-col items-center justify-center gap-0 group 
             ${(orderType === "scheduled" && !selectedTime)

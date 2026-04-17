@@ -1,8 +1,37 @@
-import { useState } from "react";
-import { canteens } from "../data/canteenData";
+import { useState, useEffect } from "react";
 
 function Menu() {
-    const [activeCanteen, setActiveCanteen] = useState(canteens[0]);
+    const [canteens, setCanteens] = useState([]);
+    const [activeCanteen, setActiveCanteen] = useState(null);
+
+    // 🔥 Fetch data from Flask backend
+    useEffect(() => {
+        fetch("http://127.0.0.1:5000/menu/Hangout%20Canteen")
+            .then(res => res.json())
+            .then(data => {
+                // Convert backend data to your existing UI format
+                const formatted = [
+                    {
+                        id: 1,
+                        name: "Main Canteen",
+                        menu: data.Breakfast.map((item, index) => ({
+                            id: index,
+                            item: item.name,
+                            price: item.price
+                        }))
+                    }
+                ];
+
+                setCanteens(formatted);
+                setActiveCanteen(formatted[0]);
+            })
+            .catch(err => console.error(err));
+    }, []);
+
+    // ⏳ Loading state (important)
+    if (!activeCanteen) {
+        return <div className="pt-28 text-center">Loading menu...</div>;
+    }
 
     return (
         <div className="min-h-screen pt-28 px-10 bg-gradient-to-br from-orange-50 to-amber-100">
