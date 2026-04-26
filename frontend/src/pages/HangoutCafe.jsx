@@ -1,77 +1,50 @@
-import { useState } from "react";
-import { ChevronLeft, Star, Clock, Plus, Minus, Search, ShoppingBag, Flame } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, Star, Clock, Search, Flame, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-import PohaImg from "../assets/images/Pohe.jpg";
-import  sabudanaImg from "../assets/images/sabudana_khichdi.jpg";
-import  misalImg from "../assets/images/misal_pav.jpg";
-import  TeaImg from "../assets/images/Tea.jpg";
-import  hotCoffeeImg from "../assets/images/coffee.jpg";
-import  coldcoffeeImg from "../assets/images/Cold_coffee.jpg";
-import  FriesImg from "../assets/images/Fries.jpg";
-import  NoodlesImg from "../assets/images/Noodles.png";
-import  sandwichImg from "../assets/images/sandwich.jpg";
-import  MaggieImg from "../assets/images/Maggie.jpg";
-import  BurgerImg from "../assets/images/burger.jpg";
-import  PizzaImg from "../assets/images/Pizza.jpg";
-import  MomosImg from "../assets/images/Momos.jpg";
-import  VadapavImg from "../assets/images/Vadapav.png";
-
-// Added image placeholders to make it look "Swiggy-style"
-const cafeMenu = {
-        Breakfast: [
-            { name: "Poha", price: 25, desc: "Light Maharashtrian breakfast with peanuts", image: PohaImg },
-            { name: "Vada Pav", price: 15, desc: "Mumbai's iconic street food burger", image: VadapavImg },
-            { name: "Samosa", price: 18, desc: "Crispy fried snack with spicy filling", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80"},
-            { name: "Sabudana Khichdi", price: 45, desc: "Light and healthy fasting dish", image: sabudanaImg },
-        ],
-
-        Beverages: [
-            { name: "Tea", price: 12, desc: "Regular chai", image: TeaImg },
-            { name:"Cold coffee", price: 50, desc: "Strong and refreshing Cold coffee", image: coldcoffeeImg  },
-            { name: "Hot Coffee", price: 30, desc: "Freshly brewed hot coffee", image:hotCoffeeImg },
-        ],
-
-        Snack_Corner: [
-            { name: "French Fries", price: 60, desc: "Crispy salted fries", image: FriesImg },
-            { name: "Peri Peri Fries", price: 70, desc: "Spicy peri peri fries", image: FriesImg },
-            { name: "Cheese Fries", price: 80, desc: "Loaded cheesy fries", image: FriesImg },
-            { name: "Egg Bhurji", price: 65, desc: "Spicy scrambled eggs", image: "https://images.unsplash.com/photo-1604908176997-431b58c1a8c5?auto=format&fit=crop&w=300&q=80" },
-            { name: "Egg Omelette", price: 65, desc: "Classic omelette", image: "https://images.unsplash.com/photo-1604908176997-431b58c1a8c5?auto=format&fit=crop&w=300&q=80" },
-            { name: "Samosa Chaat", price: 40, desc: "Tangy and spicy chaat", image: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=300&q=80" },
-        ],
-
-        Chinese_Corner: [
-            { name: "Veg Fried Rice", price: 70, desc: "Classic vegetable fried rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-            { name: "Veg Schezwan Rice", price: 80, desc: "Spicy schezwan rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-            { name: "Chicken Fried Rice", price: 100, desc: "Fried rice with chicken", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-            { name: "Chicken Schezwan Rice", price: 110, desc: "Spicy chicken schezwan rice", image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-            { name: "Hakka Noodles", price: 70, desc: "Classic hakka noodles", image: NoodlesImg  },
-            { name: "Chicken Hakka Noodles", price: 100, desc: "Chicken hakka noodles", image: NoodlesImg },
-            { name: "Veg Steamed Momos", price: 70, desc: "Steamed veg dumplings", image: MomosImg },
-            { name: "Veg Fried Momos", price: 80, desc: "Fried veg dumplings", image: MomosImg },
-            { name: "Chicken Steamed Momos", price: 80, desc: "Steamed chicken momos", image:MomosImg},
-            { name: "Chicken Fried Momos", price: 100, desc: "Fried chicken momos", image:MomosImg },
-        ],
-
-        Between_the_Breads: [
-            { name: "Veg Grilled Sandwich", price: 60, desc: "Grilled veg sandwich", image: sandwichImg },
-            { name: "Veg Cheese Grilled Sandwich", price: 85, desc: "Cheesy grilled sandwich", image:sandwichImg },
-            { name: "Chicken Sandwich", price: 80, desc: "Simple chicken sandwich", image:sandwichImg },
-            { name: "Veg Burger", price: 70, desc: "Classic veg burger", image:BurgerImg },
-            { name: "Veg Cheese Burger", price: 95, desc: "Burger with cheese", image: BurgerImg },
-            { name: "Chicken Burger", price: 90, desc: "Juicy chicken burger", image:BurgerImg },
-            { name: "Chicken Cheese Burger", price: 115, desc: "Loaded chicken cheese burger", image: BurgerImg },
-            { name: "Veg Pizza (11 inch)", price: 150, desc: "Classic veg pizza", image:PizzaImg },
-            { name: "Chicken Pizza (11 inch)", price: 200, desc: "Chicken loaded pizza", image: PizzaImg },
-        ],
-
+// Mapping table to turn database keys into pretty display names
+const categoryNames = {
+  breakfast: "Breakfast",
+  beverages: "Beverages",
+  snacks: "Snack Corner",
+  chinese: "Chinese Corner",
+  breads: "Between the Breads",
+  morning: "Morning Kickstart",
+  street: "Street Cravings",
+  quick_fix: "Crispy Bites",
+  sip_chill: "Sip & Chill",
+  meals: "Desi & Global Meals"
 };
 
 function HangoutCafe({ cart, setCart }) {
-    const [activeCategory, setActiveCategory] = useState("Breakfast");
+    const [menuData, setMenuData] = useState({});
+    const [activeCategory, setActiveCategory] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // We use the ID 'hangout' as defined in our backend seeder
+        fetch("http://localhost:5000/menu/hangout")
+            .then(res => res.json())
+            .then(data => {
+                const grouped = data.reduce((acc, item) => {
+                    if (!acc[item.category]) acc[item.category] = [];
+                    acc[item.category].push(item);
+                    return acc;
+                }, {});
+                setMenuData(grouped);
+                console.log("response", grouped);
+                // Set the first available category as active
+                const firstCat = Object.keys(grouped)[0];
+                if (firstCat) setActiveCategory(firstCat);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                setLoading(false);
+            });
+    }, []);
 
     const addItem = (item) => {
         setCart((prev) => {
@@ -89,39 +62,23 @@ function HangoutCafe({ cart, setCart }) {
             return prev.map((i) => i.name === item.name ? { ...i, qty: i.qty - 1 } : i);
         });
     };
-    cart.reduce((t, i) => t + (i.price * i.qty), 0);
+
+    if (loading) return <div className="h-screen flex items-center justify-center font-bold">Loading Menu...</div>;
+
     return (
         <div className="bg-white min-h-screen pb-40 font-sans selection:bg-amber-100">
-
             {/* --- HERO HEADER --- */}
             <div className="relative h-64 md:h-80 w-full overflow-hidden">
-                <img
-                    src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80"
-                    className="w-full h-full object-cover scale-105 brightness-50"
-                    alt="Cafe Interior"
-                />
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover scale-105 brightness-50" alt="Cafe Interior" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 bg-gradient-to-t from-black/80 to-transparent">
-                    <button
-                        onClick={() => navigate("/")}
-                        className="absolute top-8 left-6 bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white hover:text-black transition-all"
-                    >
+                    <button onClick={() => navigate("/")} className="absolute top-8 left-6 bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white hover:text-black transition-all">
                         <ChevronLeft size={24} />
                     </button>
-
                     <div className="max-w-6xl mx-auto w-full">
-                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">
-                            Hangout Cafe <span className="text-amber-400">☕</span>
-                        </h1>
-                        <div className="flex items-center gap-4 mt-3">
-              <span className="flex items-center gap-1 bg-green-500 text-white px-2 py-0.5 rounded-lg text-xs font-bold">
-                <Star size={14} fill="currentColor" /> 4.4
-              </span>
-                            <span className="text-gray-300 font-medium text-sm flex items-center gap-1">
-                <Clock size={14} /> 10-15 MINS
-              </span>
-                            <span className="text-gray-300 font-medium text-sm border-l border-gray-500 pl-4">
-                200+ Students served today
-              </span>
+                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">Hangout Cafe <span className="text-amber-400">☕</span></h1>
+                        <div className="flex items-center gap-4 mt-3 text-white">
+                            <span className="flex items-center gap-1 bg-green-500 px-2 py-0.5 rounded-lg text-xs font-bold"><Star size={14} fill="currentColor" /> 4.4</span>
+                            <span className="font-medium text-sm flex items-center gap-1"><Clock size={14} /> 10-15 MINS</span>
                         </div>
                     </div>
                 </div>
@@ -132,15 +89,15 @@ function HangoutCafe({ cart, setCart }) {
                 <div className="max-w-6xl mx-auto px-6 py-4">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                         <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
-                            {Object.keys(cafeMenu).map((cat) => (
+                            {Object.keys(menuData).map((catKey) => (
                                 <button
-                                    key={cat}
-                                    onClick={() => setActiveCategory(cat)}
-                                    className={`px-5 py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
-                                        activeCategory === cat ? "bg-amber-500 text-white shadow-lg shadow-amber-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    key={catKey}
+                                    onClick={() => setActiveCategory(catKey)}
+                                    className={`px-5 py-2 rounded-2xl font-black text-xs uppercase tracking-widest whitespace-nowrap transition-all ${
+                                        activeCategory === catKey ? "bg-amber-500 text-white shadow-lg" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                     }`}
                                 >
-                                    {cat}
+                                    {categoryNames[catKey] || catKey}
                                 </button>
                             ))}
                         </div>
@@ -161,16 +118,20 @@ function HangoutCafe({ cart, setCart }) {
             <div className="max-w-6xl mx-auto px-6 mt-10">
                 <div className="flex items-center gap-3 mb-8">
                     <Flame className="text-orange-500" fill="currentColor" />
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Picks in {activeCategory}</h2>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                        Top Picks in {categoryNames[activeCategory] || activeCategory}
+                    </h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {(cafeMenu[activeCategory] || []).filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => {
+                    {(menuData[activeCategory] || [])
+                      .filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map((item) => {
                         const cartItem = cart.find((i) => i.name === item.name);
                         const isNonVeg = item.name.toLowerCase().includes('chicken') || item.name.toLowerCase().includes('egg');
 
                         return (
-                            <div key={idx} className="flex justify-between items-start bg-white p-4 md:p-6 rounded-[2.5rem] border border-gray-100 hover:shadow-2xl hover:shadow-gray-200 transition-all group">
+                            <div key={item.id} className="flex justify-between items-start bg-white p-4 md:p-6 rounded-[2.5rem] border border-gray-100 hover:shadow-2xl transition-all group">
                                 <div className="flex-1 pr-6">
                                     <div className={`w-4 h-4 rounded-sm border-2 ${isNonVeg ? 'border-red-500' : 'border-green-600'} flex items-center justify-center mb-3`}>
                                         <div className={`w-2 h-2 rounded-full ${isNonVeg ? 'bg-red-500' : 'bg-green-600'}`} />
@@ -182,15 +143,19 @@ function HangoutCafe({ cart, setCart }) {
 
                                 <div className="relative">
                                     <div className="w-32 h-32 rounded-3xl overflow-hidden shadow-inner bg-gray-100">
-                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        <img
+                                            src={item.image_url ? `http://localhost:5000/static/images/${item.image_url}` : "https://via.placeholder.com/150"}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
                                     </div>
 
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-28">
                                         {cartItem ? (
                                             <div className="flex items-center justify-between bg-white text-amber-600 rounded-xl shadow-xl border border-amber-100 overflow-hidden px-1 py-1">
-                                                <button onClick={() => removeItem(item)} className="p-2 hover:bg-amber-50 rounded-lg transition-colors"><Minus size={16} strokeWidth={3} /></button>
+                                                <button onClick={() => removeItem(item)} className="p-2 hover:bg-amber-50 rounded-lg"><Minus size={16} strokeWidth={3} /></button>
                                                 <span className="font-black text-sm">{cartItem.qty}</span>
-                                                <button onClick={() => addItem(item)} className="p-2 hover:bg-amber-50 rounded-lg transition-colors"><Plus size={16} strokeWidth={3} /></button>
+                                                <button onClick={() => addItem(item)} className="p-2 hover:bg-amber-50 rounded-lg"><Plus size={16} strokeWidth={3} /></button>
                                             </div>
                                         ) : (
                                             <button
@@ -210,17 +175,13 @@ function HangoutCafe({ cart, setCart }) {
 
             {/* --- FLOATING CART --- */}
             {cart.length > 0 && (
-                <button
-                    onClick={() => navigate("/cart")}
-                    className="fixed bottom-8 right-8 bg-orange-500 text-white p-5 rounded-full shadow-2xl z-50 hover:scale-110 transition-all active:scale-95 group flex items-center gap-3"
-                >
+                <button onClick={() => navigate("/cart")} className="fixed bottom-8 right-8 bg-orange-500 text-white p-5 rounded-full shadow-2xl z-50 flex items-center gap-3">
                     <div className="relative">
                         <ShoppingBag size={28} strokeWidth={2.5} />
-                        <span className="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-orange-500">
-        {cart.reduce((total, item) => total + item.qty, 0)}
-      </span>
+                        <span className="absolute -top-2 -right-2 bg-slate-900 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full">
+                            {cart.reduce((total, item) => total + item.qty, 0)}
+                        </span>
                     </div>
-                    <span className="font-black text-sm pr-2 hidden group-hover:block transition-all">View Cart</span>
                 </button>
             )}
         </div>

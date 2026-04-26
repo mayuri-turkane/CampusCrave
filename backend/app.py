@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 from models import db, User, Menu, Order, OrderItem
 
 app = Flask(__name__)
 CORS(app)
+bcrypt = Bcrypt(app)
 
 # 🔥 DATABASE CONFIG
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:@localhost/campuscrave"
@@ -12,57 +14,153 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
+
+# ✅ USER REGISTRATION
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+    new_user = User(name=name, email=email, password=hashed_pw)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully!"}), 201
+
+
+# ✅ USER LOGIN
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
+        return jsonify({
+            "message": "Login successful",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email
+            }
+        }), 200
+
+    return jsonify({"error": "Invalid email or password"}), 401
+
+
 # 🔥 INSERT FULL MENU DATA
 def insert_menu():
     if Menu.query.first():
         return
 
-    items = [
+    items = []
 
-        # 🍳 BREAKFAST
-        Menu(name="Poha", price=25, category="Breakfast", canteen="Hangout Canteen"),
-        Menu(name="Misal Pav", price=55, category="Breakfast"),
-        Menu(name="Vada Pav", price=15, category="Breakfast"),
-        Menu(name="Samosa", price=18, category="Breakfast"),
-        Menu(name="Sabudana Khichdi", price=45, category="Breakfast"),
+    # --- HANGOUT CAFE DATA (Canteen: 'hangout') ---
+    hangout_data = {
+        "breakfast": [
+            {"name": "Poha", "price": 25, "desc": "Light Maharashtrian breakfast with peanuts", "img": "Pohe.jpg"},
+            {"name": "Vada Pav", "price": 15, "desc": "Mumbai's iconic street food burger", "img": "Vadapav.png"},
+            {"name": "Samosa", "price": 18, "desc": "Crispy fried snack with spicy filling", "img": "samosa.jpg"},
+            {"name": "Sabudana Khichdi", "price": 45, "desc": "Light and healthy fasting dish", "img": "sabudana_khichdi.jpg"},
+        ],
+        "beverages": [
+            {"name": "Tea", "price": 12, "desc": "Regular chai", "img": "Tea.jpg"},
+            {"name": "Cold coffee", "price": 50, "desc": "Strong and refreshing Cold coffee", "img": "Cold_coffee.jpg"},
+            {"name": "Hot Coffee", "price": 30, "desc": "Freshly brewed hot coffee", "img": "coffee.jpg"},
+        ],
+        "snacks": [
+            {"name": "French Fries", "price": 60, "desc": "Crispy salted fries", "img": "Fries.jpg"},
+            {"name": "Peri Peri Fries", "price": 70, "desc": "Spicy peri peri fries", "img": "Fries.jpg"},
+            {"name": "Cheese Fries", "price": 80, "desc": "Loaded cheesy fries", "img": "Fries.jpg"},
+            {"name": "Egg Bhurji", "price": 65, "desc": "Spicy scrambled eggs", "img": "egg_bhurji.jpg"},
+            {"name": "Egg Omelette", "price": 65, "desc": "Classic omelette", "img": "omelette.jpg"},
+            {"name": "Samosa Chaat", "price": 40, "desc": "Tangy and spicy chaat", "img": "samosa_chaat.jpg"},
+        ],
+        "chinese": [
+            {"name": "Veg Fried Rice", "price": 70, "desc": "Classic vegetable fried rice", "img": "FriedRice.png"},
+            {"name": "Veg Schezwan Rice", "price": 80, "desc": "Spicy schezwan rice", "img": "FriedRice.png"},
+            {"name": "Chicken Fried Rice", "price": 100, "desc": "Fried rice with chicken", "img": "FriedRice.png"},
+            {"name": "Chicken Schezwan Rice", "price": 110, "desc": "Spicy chicken schezwan rice", "img": "FriedRice.png"},
+            {"name": "Hakka Noodles", "price": 70, "desc": "Classic hakka noodles", "img": "Noodles.png"},
+            {"name": "Chicken Hakka Noodles", "price": 100, "desc": "Chicken hakka noodles", "img": "Noodles.png"},
+            {"name": "Veg Steamed Momos", "price": 70, "desc": "Steamed veg dumplings", "img": "Momos.jpg"},
+            {"name": "Veg Fried Momos", "price": 80, "desc": "Fried veg dumplings", "img": "Momos.jpg"},
+            {"name": "Chicken Steamed Momos", "price": 80, "desc": "Steamed chicken momos", "img": "Momos.jpg"},
+            {"name": "Chicken Fried Momos", "price": 100, "desc": "Fried chicken momos", "img": "Momos.jpg"},
+        ],
+        "breads": [
+            {"name": "Veg Grilled Sandwich", "price": 60, "desc": "Grilled veg sandwich", "img": "sandwich.jpg"},
+            {"name": "Veg Cheese Grilled Sandwich", "price": 85, "desc": "Cheesy grilled sandwich", "img": "sandwich.jpg"},
+            {"name": "Chicken Sandwich", "price": 80, "desc": "Simple chicken sandwich", "img": "sandwich.jpg"},
+            {"name": "Veg Burger", "price": 70, "desc": "Classic veg burger", "img": "burger.jpg"},
+            {"name": "Veg Cheese Burger", "price": 95, "desc": "Burger with cheese", "img": "burger.jpg"},
+            {"name": "Chicken Burger", "price": 90, "desc": "Juicy chicken burger", "img": "burger.jpg"},
+            {"name": "Chicken Cheese Burger", "price": 115, "desc": "Loaded chicken cheese burger", "img": "burger.jpg"},
+            {"name": "Veg Pizza (11 inch)", "price": 150, "desc": "Classic veg pizza", "img": "Pizza.jpg"},
+            {"name": "Chicken Pizza (11 inch)", "price": 200, "desc": "Chicken loaded pizza", "img": "Pizza.jpg"},
+        ]
+    }
 
-        # ☕ BEVERAGES
-        Menu(name="Tea", price=12, category="Beverages"),
-        Menu(name="Special Tea (Big Cup)", price=30, category="Beverages"),
-        Menu(name="Hot Coffee", price=30, category="Beverages"),
-        Menu(name="Cold Coffee", price=45, category="Beverages"),
+    # --- MAIN CANTEEN DATA (Canteen: 'main') ---
+    main_data = {
+        "morning": [
+            {"name": "Poha", "price": 20, "desc": "Light Maharashtrian breakfast", "img": "Pohe.jpg"},
+            {"name": "Idli", "price": 30, "desc": "Soft idli with chutney & sambar", "img": "Idli.png"},
+            {"name": "Upma", "price": 30, "desc": "Healthy semolina breakfast", "img": "Upma.png"},
+            {"name": "Dosa", "price": 50, "desc": "Crispy dosa with chutney", "img": "south.png"},
+            {"name": "Vada Sambar", "price": 40, "desc": "Crispy vada with sambar", "img": "south.png"},
+            {"name": "Sabudana Khichdi", "price": 45, "desc": "Fasting special dish", "img": "sabudana_khichdi.jpg"},
+        ],
+        "street": [
+            {"name": "Vada Pav", "price": 20, "desc": "Mumbai street food", "img": "Vadapav.png"},
+            {"name": "Samosa", "price": 20, "desc": "Crispy samosa", "img": "samosa.jpg"},
+            {"name": "Misal Pav", "price": 60, "desc": "Spicy curry with pav", "img": "misal_pav.jpg"},
+            {"name": "Dabeli", "price": 30, "desc": "Spicy dabeli", "img": "Dabeli.png"},
+            {"name": "Sabudana Vada", "price": 40, "desc": "Fried sabudana snack", "img": "Sabudanavada.png"},
+        ],
+        "quick_fix": [
+            {"name": "French Fries", "price": 60, "desc": "Crispy fries", "img": "Fries.jpg"},
+            {"name": "Peri Peri Fries", "price": 70, "desc": "Spicy fries", "img": "Fries.jpg"},
+            {"name": "Sandwich", "price": 50, "desc": "Veg sandwich", "img": "sandwich.jpg"},
+            {"name": "Omelette", "price": 40, "desc": "Egg omelette", "img": "Omlete.png"},
+            {"name": "Dhokla", "price": 40, "desc": "Soft Gujarati snack", "img": "Dhokla.png"},
+        ],
+        "sip_chill": [
+            {"name": "Tea", "price": 12, "desc": "Regular chai", "img": "Tea.jpg"},
+            {"name": "Coffee", "price": 30, "desc": "Hot coffee", "img": "coffee.jpg"},
+            {"name": "Cold Coffee", "price": 45, "desc": "Chilled coffee", "img": "Cold_coffee.jpg"},
+            {"name": "Taak", "price": 20, "desc": "Refreshing buttermilk", "img": "Taak.png"},
+            {"name": "Dahi", "price": 25, "desc": "Fresh curd", "img": "Dahi.jpg"},
+        ],
+        "meals": [
+            {"name": "Pav Bhaji", "price": 70, "desc": "Spicy mashed veggies", "img": "Pavbhaji.png"},
+            {"name": "Chole Bhature", "price": 70, "desc": "Punjabi special meal", "img": "Cholebhature.png"},
+            {"name": "Aloo Paratha", "price": 50, "desc": "Stuffed paratha with butter", "img": "Aloo_paratha.png"},
+            {"name": "Fried Rice", "price": 80, "desc": "Veg fried rice", "img": "FriedRice.png"},
+            {"name": "Noodles", "price": 70, "desc": "Hakka noodles", "img": "Noodles.png"},
+            {"name": "Pasta", "price": 90, "desc": "Creamy pasta", "img": "passta.jpg"},
+            {"name": "Maggi (Plain)", "price": 40, "desc": "Simple maggi", "img": "Maggie.jpg"},
+            {"name": "Maggi (Masala)", "price": 50, "desc": "Spicy maggi", "img": "Maggie.jpg"},
+        ]
+    }
 
-        # 🍟 SNACK
-        Menu(name="French Fries", price=60, category="Snack"),
-        Menu(name="Peri Peri Fries", price=70, category="Snack"),
-        Menu(name="Cheese Fries", price=80, category="Snack"),
-        Menu(name="Egg Bhurji", price=65, category="Snack"),
-        Menu(name="Egg Omelette", price=65, category="Snack"),
-        Menu(name="Samosa Chaat", price=40, category="Snack"),
+    # Loop to create objects
+    for cat, product_list in hangout_data.items():
+        for p in product_list:
+            items.append(Menu(name=p['name'], price=p['price'], desc=p['desc'], category=cat, canteen="hangout", image_url=p['img']))
 
-        # 🍜 CHINESE
-        Menu(name="Veg Fried Rice", price=70, category="Chinese"),
-        Menu(name="Veg Schezwan Rice", price=80, category="Chinese"),
-        Menu(name="Chicken Fried Rice", price=100, category="Chinese"),
-        Menu(name="Chicken Schezwan Rice", price=110, category="Chinese"),
-        Menu(name="Hakka Noodles", price=70, category="Chinese"),
-        Menu(name="Schezwan Hakka Noodles", price=80, category="Chinese"),
-        Menu(name="Chicken Hakka Noodles", price=100, category="Chinese"),
-        Menu(name="Veg Steamed Momos", price=70, category="Chinese"),
-        Menu(name="Veg Fried Momos", price=80, category="Chinese"),
-        Menu(name="Chicken Steamed Momos", price=80, category="Chinese"),
-        Menu(name="Chicken Fried Momos", price=100, category="Chinese"),
-
-        # 🍔 BURGERS
-        Menu(name="Veg Grilled Sandwich", price=60, category="Burgers"),
-        Menu(name="Veg Cheese Grilled Sandwich", price=85, category="Burgers"),
-
-        # MAIN CANTEEN DATA
-        Menu(name="Poha", price=20, category="Morning Kickstart", canteen="Main Canteen"),
-        Menu(name="Idli", price=30, category="Morning Kickstart", canteen="Main Canteen"),
-        Menu(name="Pav Bhaji", price=70, category="Desi & Global Meals", canteen="Main Canteen"),
-        Menu(name="Chole Bhature", price=70, category="Desi & Global Meals", canteen="Main Canteen"),
-    ]
+    for cat, product_list in main_data.items():
+        for p in product_list:
+            items.append(Menu(name=p['name'], price=p['price'], desc=p['desc'], category=cat, canteen="main", image_url=p['img']))
 
     db.session.add_all(items)
     db.session.commit()
@@ -82,11 +180,8 @@ def home():
 # ✅ GET MENU (FIXED INDENTATION)
 @app.route("/menu/<path:canteen>", methods=["GET"])
 def get_menu(canteen):
-    from sqlalchemy import or_
-
-    items = Menu.query.filter(
-        or_(Menu.canteen == canteen, Menu.canteen == None)
-    ).all()
+    # This ensures we get items for the specific canteen
+    items = Menu.query.filter_by(canteen=canteen).all()
 
     return jsonify([
         {
@@ -94,18 +189,25 @@ def get_menu(canteen):
             "name": i.name,
             "price": i.price,
             "category": i.category,
-            "canteen": i.canteen
+            "canteen": i.canteen,
+            "desc": i.desc,
+            "image_url": i.image_url
         } for i in items
     ])
 
 
-# ✅ PLACE ORDER
+# ✅ PLACE ORDER (Updated to find user by email)
 @app.route("/order", methods=["POST"])
 def place_order():
     data = request.json
+    user_email = data.get("email")  # Sent from frontend localStorage
+
+    user = User.query.filter_by(email=user_email).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
     order = Order(
-        user_id=data.get("user_id", 1),
+        user_id=user.id,
         total_price=data.get("total_price", 0)
     )
     db.session.add(order)
@@ -121,11 +223,7 @@ def place_order():
         db.session.add(order_item)
 
     db.session.commit()
-
-    return jsonify({
-        "message": "Order placed successfully",
-        "order_id": order.id
-    })
+    return jsonify({"message": "Order placed successfully", "order_id": order.id})
 
 
 # ✅ GET ALL ORDERS (FIXED POSITION)

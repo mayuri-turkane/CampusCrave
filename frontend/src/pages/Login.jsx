@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import loginImage from "../assets/images/login_img.jpg";
+import {useState} from "react";
+import {useNavigate, Link} from "react-router-dom";
+import loginImage from "../../../backend/static/images/login_img.jpg";
 
 function Login() {
 
@@ -8,32 +8,30 @@ function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
+        setError("");
 
-        const storedUser = JSON.parse(localStorage.getItem("user"));
+        try {
+            const res = await fetch("http://localhost:5000/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email, password}),
+            });
+            const data = await res.json();
 
-        // If no user registered
-        if (!storedUser) {
-            alert("No user found. Please register first.");
-            return;
-        }
-
-        // Check credentials
-        if (
-            storedUser.email === email &&
-            storedUser.password === password
-        ) {
-            alert("Login Successful ✅");
-
-            // Save login status (optional but useful later)
-            localStorage.setItem("isLoggedIn", true);
-
-            // Redirect to Home
-            navigate("/");
-        } else {
-            alert("Invalid Credentials ❌");
+            if (res.ok) {
+                localStorage.setItem("user", JSON.stringify(data.user));
+                localStorage.setItem("isLoggedIn", "true");
+                navigate("/");
+            } else {
+                setError(data.error || "Invalid Credentials");
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("Server connection failed.");
         }
     };
 
@@ -51,6 +49,7 @@ function Login() {
                     <p className="text-gray-500 mb-8">
                         Login to continue ordering delicious food 🍔
                     </p>
+                    {error && <p className="text-red-500 bg-red-50 p-3 rounded-xl text-sm mb-4 font-bold">{error}</p>}
 
                     <form onSubmit={handleLogin} className="space-y-5">
 

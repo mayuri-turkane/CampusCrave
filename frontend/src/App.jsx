@@ -15,9 +15,10 @@ import CartPage from "./pages/CartPage.jsx";
 import GroupsHub from "./pages/GroupsHub.jsx";
 
 const ProtectedRoute = ({children}) => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-        return <Navigate to="/login"/>;
+    // Check for user object instead of just a boolean
+    const user = localStorage.getItem("user");
+    if (!user) {
+        return <Navigate to="/login" replace/>;
     }
     return children;
 };
@@ -25,7 +26,7 @@ const ProtectedRoute = ({children}) => {
 function App() {
 
     const [groups, setGroups] = useState([
-        { id: 1, name: "Sample Squad 🍕", members: ["You", "Rahul"], totalSpent: 0, status: "Active", lastOrder: "None" }
+        {id: 1, name: "Sample Squad 🍕", members: ["You", "Rahul"], totalSpent: 0, status: "Active", lastOrder: "None"}
     ]);
 
     // 🛒 Cart State
@@ -98,7 +99,7 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Header/>
-                            {<Dashboard cart={cart} groups={groups} setGroups={setGroups} />}
+                            {<Dashboard cart={cart} groups={groups} setGroups={setGroups}/>}
                             <Footer/>
                         </ProtectedRoute>
                     }
@@ -108,16 +109,23 @@ function App() {
                     path="/cart"
                     element={
                         <ProtectedRoute>
-                            <Header />
-                            <CartPage cart={cart} setCart={setCart} groups={groups} />
-                            <Footer />
+                            <Header/>
+                            <CartPage cart={cart} setCart={setCart} groups={groups}/>
+                            <Footer/>
                         </ProtectedRoute>
                     }
                 />
 
+                {/* App.jsx - Find the /groups route and update it to this: */}
                 <Route
                     path="/groups"
-                    element={<GroupsHub  groups={groups}  />}
+                    element={
+                        <ProtectedRoute>
+                            <Header/>
+                            <GroupsHub groups={groups} setGroups={setGroups}/>
+                            <Footer/>
+                        </ProtectedRoute>
+                    }
                 />
 
             </Routes>
