@@ -1,5 +1,5 @@
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
-import {useState} from "react";
+import { useState, useEffect } from "react";
 
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
@@ -15,7 +15,6 @@ import CartPage from "./pages/CartPage.jsx";
 import GroupsHub from "./pages/GroupsHub.jsx";
 
 const ProtectedRoute = ({children}) => {
-    // Check for user object instead of just a boolean
     const user = localStorage.getItem("user");
     if (!user) {
         return <Navigate to="/login" replace/>;
@@ -25,14 +24,33 @@ const ProtectedRoute = ({children}) => {
 
 function App() {
 
-    const [groups, setGroups] = useState([
-        {id: 1, name: "Sample Squad 🍕", members: ["You", "Rahul"], totalSpent: 0, status: "Active", lastOrder: "None"}
-    ]);
+    // ✅ groups persistence added
+    const [groups, setGroups] = useState(() => {
+        const savedGroups = localStorage.getItem("groups");
+        return savedGroups
+            ? JSON.parse(savedGroups)
+            : [
+                {id: 1, name: "Sample Squad 🍕", members: ["You", "Rahul"], totalSpent: 0, status: "Active", lastOrder: "None"}
+            ];
+    });
 
-    // 🛒 Cart State
-    const [cart, setCart] = useState([]);
+    // ✅ cart persistence added
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem("cart");
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
 
-    // ➕ Add Item to Cart
+    // ✅ save cart on change
+    useEffect(() => {
+        localStorage.setItem("cart", JSON.stringify(cart));
+    }, [cart]);
+
+    // ✅ save groups on change
+    useEffect(() => {
+        localStorage.setItem("groups", JSON.stringify(groups));
+    }, [groups]);
+
+    // ➕ Add Item to Cart (unchanged)
     const addToCart = (item) => {
         setCart([...cart, item]);
     };
@@ -99,12 +117,13 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Header/>
-                            {<Dashboard cart={cart} groups={groups} setGroups={setGroups}/>}
+                            <Dashboard cart={cart} groups={groups} setGroups={setGroups}/>
                             <Footer/>
                         </ProtectedRoute>
                     }
                 />
 
+                {/* Cart */}
                 <Route
                     path="/cart"
                     element={
@@ -116,7 +135,7 @@ function App() {
                     }
                 />
 
-                {/* App.jsx - Find the /groups route and update it to this: */}
+                {/* Groups */}
                 <Route
                     path="/groups"
                     element={
@@ -131,8 +150,6 @@ function App() {
             </Routes>
         </BrowserRouter>
     );
-
-
 }
 
 export default App;

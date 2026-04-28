@@ -64,10 +64,16 @@ function CartPage({ cart, setCart, groups = [] }) {
             quantity: item.qty,
             price: item.price
         }));
+        const user = JSON.parse(localStorage.getItem("user"));
+
         fetch("http://127.0.0.1:5000/order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id: 1, items: formattedItems, total_price: total })
+            body: JSON.stringify({
+                email: user.email,
+                items: formattedItems,
+                total_price: total
+            })
         })
         .then(res => res.json())
         .then(() => {

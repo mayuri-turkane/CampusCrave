@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from models import db, User, Menu, Order, OrderItem
+from models import db, User, Menu, Order, OrderItem, Group, GroupMember
 
 app = Flask(__name__)
 CORS(app)
@@ -240,6 +240,32 @@ def get_orders():
         } for o in orders
     ])
 
+
+# ✅ CREATE GROUP API
+@app.route("/create-group", methods=["POST"])
+def create_group():
+    data = request.json
+
+    group = Group(
+        name=data.get("name"),
+        created_by=data.get("user_id")
+    )
+    db.session.add(group)
+    db.session.commit()
+
+    for member in data.get("members", []):
+        gm = GroupMember(
+            group_id=group.id,
+            member_name=member
+        )
+        db.session.add(gm)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Group created successfully",
+        "group_id": group.id
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

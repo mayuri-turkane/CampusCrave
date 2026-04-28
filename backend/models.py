@@ -44,3 +44,19 @@ class OrderItem(db.Model):
     item_name = db.Column(db.String(100))
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
+
+#  GROUP TABLE
+class Group(db.Model):
+    __tablename__ = "groups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+# GROUP MEMBER TABLE
+class GroupMember(db.Model):
+    __tablename__ = "group_members"
+
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("groups.id"))
+    member_name = db.Column(db.String(100))
