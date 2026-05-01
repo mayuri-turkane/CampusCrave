@@ -10,7 +10,10 @@ function CartPage({ cart, setCart, groups = [] }) {
 
     const timeSlots = ["12:15 PM", "12:30 PM", "12:45 PM", "01:00 PM", "01:15 PM", "01:30 PM", "04:30 PM"];
     const selectedGroup = groups.find(g => g.id === selectedGroupId);
-    const currentMembers = selectedGroup ? selectedGroup.members : ["You"];
+    const user = JSON.parse(localStorage.getItem("user"));
+    const currentMembers = selectedGroup
+        ? [user.name, ...(selectedGroup.members || [])]
+        : [user.name];
 
     const updateQty = (name, delta) => {
         setCart(prev => prev.map(item =>
@@ -72,7 +75,8 @@ function CartPage({ cart, setCart, groups = [] }) {
             body: JSON.stringify({
                 email: user.email,
                 items: formattedItems,
-                total_price: total
+                total_price: total,
+                group_id: selectedGroupId
             })
         })
         .then(res => res.json())

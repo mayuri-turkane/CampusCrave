@@ -13,6 +13,7 @@ import ThaliMenu from "./pages/ThaliMenu";
 import HangoutCafe from "./pages/HangoutCafe.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import GroupsHub from "./pages/GroupsHub.jsx";
+import ViewOrdersPage from "./pages/ViewOrdersPage.jsx";
 
 const ProtectedRoute = ({children}) => {
     const user = localStorage.getItem("user");
@@ -24,33 +25,39 @@ const ProtectedRoute = ({children}) => {
 
 function App() {
 
-    // ✅ groups persistence added
-    const [groups, setGroups] = useState(() => {
-        const savedGroups = localStorage.getItem("groups");
-        return savedGroups
-            ? JSON.parse(savedGroups)
-            : [
-                {id: 1, name: "Sample Squad 🍕", members: ["You", "Rahul"], totalSpent: 0, status: "Active", lastOrder: "None"}
-            ];
-    });
+    // ✅ Groups now come from backend
+    const [groups, setGroups] = useState([]);
 
-    // ✅ cart persistence added
+    // ✅ cart persistence (UNCHANGED - correct)
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem("cart");
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // ✅ save cart on change
+    // ✅ save cart to localStorage
     useEffect(() => {
         localStorage.setItem("cart", JSON.stringify(cart));
     }, [cart]);
 
-    // ✅ save groups on change
+    // ✅ fetch groups from backend
     useEffect(() => {
-        localStorage.setItem("groups", JSON.stringify(groups));
-    }, [groups]);
+        const fetchGroups = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem("user"));
 
-    // ➕ Add Item to Cart (unchanged)
+                const res = await fetch(`http://localhost:5000/groups/${user.id}`);
+                const data = await res.json();
+
+                setGroups(data);
+            } catch (err) {
+                console.error("Error fetching groups:", err);
+            }
+        };
+
+        fetchGroups();
+    }, []);
+
+    // ➕ Add Item to Cart (UNCHANGED)
     const addToCart = (item) => {
         setCart([...cart, item]);
     };
@@ -142,6 +149,17 @@ function App() {
                         <ProtectedRoute>
                             <Header/>
                             <GroupsHub groups={groups} setGroups={setGroups}/>
+                            <Footer/>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/view-cart"
+                    element={
+                        <ProtectedRoute>
+                            <Header/>
+                            <ViewOrdersPage/>
                             <Footer/>
                         </ProtectedRoute>
                     }

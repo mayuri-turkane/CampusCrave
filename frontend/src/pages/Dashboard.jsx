@@ -28,19 +28,48 @@ const addMember = () => {
     setMembers(members.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleCreateGroup = () => {
-    if (!groupName.trim()) return alert("Please enter a group name!");
-    const newGroup = {
-      id: Date.now(),
-      name: groupName,
-      members: ["You", ...members],
-      totalSpent: 0,
-      status: "Active",
-      lastOrder: "None"
-    };
-    setGroups([...groups, newGroup]);
-    setShowGroupModal(false);
-    navigate("/groups");
+  const handleCreateGroup = async () => {
+    if (!groupName.trim()) {
+      return alert("Please enter a group name!");
+    }
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const res = await fetch("http://localhost:5000/create-group", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: groupName,
+          user_id: user.id,
+          members: members
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const newGroup = {
+          id: data.group_id, // ✅ real DB id
+          name: groupName,
+          members: ["You", ...members],
+          totalSpent: 0,
+          status: "Active"
+        };
+
+        setGroups(prev => [...prev, newGroup]);
+        setShowGroupModal(false);
+        navigate("/groups");
+      } else {
+        alert(data.error || "Error creating group");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
 
   const canteens = [
@@ -61,6 +90,24 @@ const addMember = () => {
 
         {/* --- HEADER --- */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <button
+              onClick={() => navigate("/view-cart")}
+              className="group cursor-pointer bg-white p-5 rounded-[2rem] flex items-center gap-5 shadow-xl shadow-indigo-100 border border-indigo-50 hover:border-indigo-200 transition-all active:scale-95"
+          >
+            <div className="relative">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
+                <Zap size={24} fill="currentColor" />
+              </div>
+              {/* Simple notification dot to show "Live" status */}
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white rounded-full animate-pulse" />
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Tracking</p>
+              <p className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                My Orders <ArrowRight size={16} className="text-indigo-500 group-hover:translate-x-1 transition-transform" />
+              </p>
+            </div>
+          </button>
           <div className="animate-in slide-in-from-left duration-700">
             <div className="flex items-center gap-2 mb-2">
               <span className="h-1 w-8 bg-orange-500 rounded-full" />

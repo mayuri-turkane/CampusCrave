@@ -202,14 +202,20 @@ def place_order():
     data = request.json
     user_email = data.get("email")  # Sent from frontend localStorage
 
+    print("FULL REQUEST DATA:", data)
+    print("Incoming group_id:", data.get("group_id"))
+
     user = User.query.filter_by(email=user_email).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    group_id = data.get("group_id")
+
     order = Order(
-        user_id=user.id,
-        total_price=data.get("total_price", 0)
-    )
+      user_id=user.id,
+      total_price=data.get("total_price", 0),
+      group_id=group_id   #
+)
     db.session.add(order)
     db.session.commit()
 
@@ -266,6 +272,48 @@ def create_group():
         "message": "Group created successfully",
         "group_id": group.id
     })
+
+# ✅ GET GROUPS FOR USER
+@app.route("/groups/<int:user_id>", methods=["GET"])
+def get_groups(user_id):
+    groups = Group.query.filter_by(created_by=user_id).all()
+
+    result = []
+    for g in groups:
+        result.append({
+            "id": g.id,
+            "name": g.name,
+            "members": [m.member_name for m in GroupMember.query.filter_by(group_id=g.id).all()]
+        })
+
+    return jsonify(result)
+
+@app.route("/group/<int:group_id>/orders", methods=["GET"])
+def get_group_orders(group_id):
+    orders = Order.query.filter_by(group_id=group_id).all()
+
+    return jsonify([
+        {
+            "id": o.id,
+            "total_price": o.total_price,
+            "order_time": o.order_time,
+            "items": [
+                {
+                    "name": i.item_name,
+                    "qty": i.quantity,
+                    "price": i.price
+                } for i in o.items
+            ]
+        } for o in orders
+    ])
+
+from ml.analytics import CampusCraveAnalytics
+
+@app.route("/api/analytics/predict", methods=["GET"])
+def analytics_predict():
+    analytics = CampusCraveAnalytics()
+    result = analytics.run()
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -34,6 +34,12 @@ class Order(db.Model):
     total_price = db.Column(db.Float)
     order_time = db.Column(db.DateTime, server_default=db.func.now())
 
+    group_id = db.Column(db.Integer, db.ForeignKey("groups.id"), nullable=True)
+
+    # status = db.Column(db.Integer, default=0, nullable=False)
+
+    # relationships
+    items = db.relationship("OrderItem", backref="order", lazy=True)
 
 # 📦 ORDER ITEMS TABLE
 class OrderItem(db.Model):
@@ -52,6 +58,10 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    # 🔗 relationships
+    members = db.relationship("GroupMember", backref="group", lazy=True)
+    orders = db.relationship("Order", backref="group", lazy=True)
 
 # GROUP MEMBER TABLE
 class GroupMember(db.Model):
