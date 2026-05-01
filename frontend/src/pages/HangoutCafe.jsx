@@ -50,9 +50,10 @@ function HangoutCafe({ cart, setCart }) {
     useEffect(() => {
         fetch("http://127.0.0.1:5000/api/analytics/predict")
             .then(res => res.json())
-            .then(data => setAnalytics(data))
-            .catch(err => console.log(err));
+            .then(data => setAnalytics(data));
     }, []);
+
+    const hotLabels = analytics.hot_labels || {};
 
     const addItem = (item) => {
         setCart((prev) => {
@@ -73,7 +74,6 @@ function HangoutCafe({ cart, setCart }) {
 
     if (loading) return <div className="h-screen flex items-center justify-center font-bold">Loading Menu...</div>;
 
-    const hotLabels = analytics.hot_labels || {};
 
     return (
         <div className="bg-white min-h-screen pb-40 font-sans selection:bg-amber-100">
@@ -146,22 +146,21 @@ function HangoutCafe({ cart, setCart }) {
                                     <div className={`w-4 h-4 rounded-sm border-2 ${isNonVeg ? 'border-red-500' : 'border-green-600'} flex items-center justify-center mb-3`}>
                                         <div className={`w-2 h-2 rounded-full ${isNonVeg ? 'bg-red-500' : 'bg-green-600'}`} />
                                     </div>
-                                    <h3 className="text-xl font-black text-gray-800 group-hover:text-amber-600 transition-colors">
+                                    <h3 className="text-xl font-black text-gray-800 flex items-center gap-2 group-hover:text-amber-600 transition-colors">
                                         {item.name}
 
                                         {hotLabels[item.name]?.trending && (
                                             <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold">
-                                                🔥
+                                              🔥
                                             </span>
                                         )}
 
                                         {hotLabels[item.name]?.selling_fast && (
                                             <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
-            ⚡
+                                              ⚡
                                             </span>
                                         )}
                                     </h3>
-
                                     <p className="mt-2 font-black text-gray-900 text-2xl tracking-tighter">₹{item.price}</p>
                                     <p className="text-gray-400 text-sm mt-2 leading-relaxed font-medium line-clamp-2">{item.desc}</p>
                                 </div>

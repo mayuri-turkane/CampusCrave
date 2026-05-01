@@ -1,5 +1,5 @@
-import { Plus, Minus, CreditCard, Users2, User, Check, ShoppingBag, Clock, ArrowRight, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { Plus, Minus, CreditCard, Users2, User, Check, ShoppingBag, Clock, ArrowRight, ShieldCheck, Info } from "lucide-react";
+import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
 function CartPage({ cart, setCart, groups = [] }) {
@@ -9,6 +9,16 @@ function CartPage({ cart, setCart, groups = [] }) {
     const [selectedTime, setSelectedTime] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [paidMembers, setPaidMembers] = useState([]); // Track names of people who finished payment
+    const [analytics, setAnalytics] = useState({});
+
+    useEffect(() => {
+        fetch("http://127.0.0.1:5000/api/analytics/predict")
+            .then(res => res.json())
+            .then(data => setAnalytics(data))
+            .catch(err => console.log(err));
+    }, []);
+
+
 
     const timeSlots = ["12:15 PM", "12:30 PM", "12:45 PM", "01:00 PM", "01:15 PM", "01:30 PM", "04:30 PM"];
     const user = JSON.parse(localStorage.getItem("user"));
@@ -29,13 +39,9 @@ function CartPage({ cart, setCart, groups = [] }) {
     const toggleOwner = (itemName, memberName) => {
         setCart(prev => prev.map(item => {
             if (item.name === itemName) {
-                // Initialize owners with current user if empty
-                const currentOwners = item.owners || [user.name];
+                const currentOwners = item.owners || ["You"];
                 const isRemoving = currentOwners.includes(memberName);
-
-                // Prevent removing the last owner
                 if (isRemoving && currentOwners.length === 1) return item;
-
                 const newOwners = isRemoving
                     ? currentOwners.filter(name => name !== memberName)
                     : [...currentOwners, memberName];
@@ -55,10 +61,10 @@ function CartPage({ cart, setCart, groups = [] }) {
         }));
     };
 
-    // Calculations
     const subtotal = cart.reduce((t, i) => t + (i.price * i.qty), 0);
     const tax = Math.round(subtotal * 0.05);
     const total = subtotal + tax;
+    const combos = analytics.squad_recommendations || [];
 
     const getIndividualTotal = (memberName) => {
         let memberShare = 0;
@@ -246,7 +252,7 @@ function CartPage({ cart, setCart, groups = [] }) {
         <div className="min-h-screen bg-[#F4F6F8] pt-24 pb-12 font-sans text-slate-800">
             <main className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* LEFT SIDE: SELECTION & ITEMS */}
+                {/* LEFT SIDE */}
                 <div className="lg:col-span-7 space-y-5">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900">Review Order</h1>
@@ -373,6 +379,26 @@ function CartPage({ cart, setCart, groups = [] }) {
                                 </div>
                             )}
                         </div>
+
+                        {/* 👥 SQUAD COMBO RECOMMENDATIONS */}
+                        {selectedGroupId && combos.length > 0 && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 shadow-sm">
+                                <h3 className="text-xs font-black text-yellow-600 mb-3">
+                                    👥 Squad Combos
+                                </h3>
+
+                                <div className="space-y-2">
+                                    {combos.map((combo, idx) => (
+                                        <div key={idx}
+                                             className="flex items-center justify-between bg-white p-3 rounded-xl border border-yellow-100">
+                                            <span className="text-sm font-bold text-slate-700">
+                                                🍔 {combo.combo.join(" + ")}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* FINAL BILL */}
                         <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-200 relative">

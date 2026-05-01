@@ -23,6 +23,14 @@ function ThaliMenu({ cart, setCart }) {
         setSelectedDay(today);
     }, []);
 
+    useEffect(() => {
+        fetch("http://127.0.0.1:5000/api/analytics/predict")
+            .then(res => res.json())
+            .then(data => setAnalytics(data))
+            .catch(err => console.log(err));
+    }, []);
+
+
     // ➕ Optimized Add to Cart
     const addToCart = (name, price, desc) => {
         const item = { name, price, desc, qty: 1 };

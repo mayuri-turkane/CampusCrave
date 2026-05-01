@@ -175,18 +175,18 @@ function Dashboard({ cart, groups, setGroups }) {
           </div>
         </div>
 
-        {/* --- CANTEEN SECTION --- */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-orange-100 p-2 rounded-lg text-orange-600"><TrendingUp size={20} /></div>
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Popular Venues</h2>
+          {/* --- CANTEEN SECTION --- */}
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-orange-100 p-2 rounded-lg text-orange-600"><TrendingUp size={20} /></div>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Popular Venues</h2>
+            </div>
+            <div className="h-[2px] flex-1 bg-slate-200 ml-6 rounded-full opacity-50" />
           </div>
-          <div className="h-[2px] flex-1 bg-slate-200 ml-6 rounded-full opacity-50" />
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {canteens.map((canteen, idx) => (
-            <div
+          {canteens.map((canteen) => (
+          <div
               key={canteen.id}
               onClick={() => navigate(canteen.path)}
               className="group relative bg-white rounded-[3rem] p-8 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer border border-slate-100 overflow-hidden"
@@ -204,12 +204,12 @@ function Dashboard({ cart, groups, setGroups }) {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-3xl font-black text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">{canteen.name}</h3>
-                  <p className="text-slate-500 font-medium leading-relaxed mb-8 max-w-[280px]">{canteen.desc}</p>
-                </div>
+                    <div>
+                      <h3 className="text-3xl font-black text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">{canteen.name}</h3>
+                      <p className="text-slate-500 font-medium leading-relaxed mb-8 max-w-[280px]">{canteen.desc}</p>
+                    </div>
 
-                <div className="mt-auto flex items-center justify-between">
+                    <div className="mt-auto flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-[0.2em] text-orange-600 flex items-center gap-2 group-hover:gap-4 transition-all">
                     Browse Full Menu <ArrowRight size={16} />
                   </span>
@@ -245,17 +245,17 @@ function Dashboard({ cart, groups, setGroups }) {
           <div className="relative bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-3xl animate-in zoom-in-95 overflow-hidden">
             <button onClick={() => setShowGroupModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-slate-900 transition-colors"><X size={28} /></button>
 
-            <div className="mb-10">
-              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner"><Users2 size={32} /></div>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Start a Squad Order</h3>
-              <p className="text-slate-400 font-medium">Add friends to start sharing your basket.</p>
-            </div>
+                <div className="mb-10">
+                  <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner"><Users2 size={32} /></div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tighter">Start a Squad Order</h3>
+                  <p className="text-slate-400 font-medium">Add friends to start sharing your basket.</p>
+                </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1 mb-2 block">Group Title</label>
-                <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Lunch Legends 🍟" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-500 focus:bg-white transition-all outline-none" />
-              </div>
+                <div className="space-y-6">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1 mb-2 block">Group Title</label>
+                    <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Lunch Legends 🍟" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-500 focus:bg-white transition-all outline-none" />
+                  </div>
 
               <div>
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1 mb-2 block">Add Teammates</label>
@@ -294,14 +294,14 @@ function Dashboard({ cart, groups, setGroups }) {
                 </div>
               )}
 
-              <button onClick={handleCreateGroup} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 transition-all mt-4 active:scale-95">
-                Confirm & Create Squad
-              </button>
+                  <button onClick={handleCreateGroup} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 transition-all mt-4 active:scale-95">
+                    Confirm & Create Squad
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
   );
 }
 
