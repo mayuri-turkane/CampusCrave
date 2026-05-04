@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -32,14 +33,12 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     total_price = db.Column(db.Float)
-    order_time = db.Column(db.DateTime, server_default=db.func.now())
-
+    # 0 = Pending, 1 = Fully Paid/Confirmed
+    status = db.Column(db.Integer, default=0)
     group_id = db.Column(db.Integer, db.ForeignKey("groups.id"), nullable=True)
-
-    # status = db.Column(db.Integer, default=0, nullable=False)
-
-    # relationships
+    order_time = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.relationship("OrderItem", backref="order", lazy=True)
+
 
 # 📦 ORDER ITEMS TABLE
 class OrderItem(db.Model):
@@ -50,6 +49,15 @@ class OrderItem(db.Model):
     item_name = db.Column(db.String(100))
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
+
+class MemberPayment(db.Model):
+    __tablename__ = "member_payments"
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    member_name = db.Column(db.String(100))
+    share_amount = db.Column(db.Float)
+    payment_id = db.Column(db.String(100), nullable=True) # Razorpay Payment ID
+    is_paid = db.Column(db.Boolean, default=False)
 
 #  GROUP TABLE
 class Group(db.Model):

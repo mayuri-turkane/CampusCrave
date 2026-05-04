@@ -54,7 +54,7 @@ class CampusCraveAnalytics:
     # INVENTORY PREDICTION
     # -----------------------------
     def predict_inventory(self, df):
-        if df.empty or len(df) < 20:
+        if df.empty or len(df) < 5:
             return {}
 
         df["item_encoded"] = self.encoder.fit_transform(df["item_name"])
@@ -101,8 +101,8 @@ class CampusCraveAnalytics:
         result = {}
         for item in df["item_name"].unique():
             result[item] = {
-                "trending": counts.get(item, 0) >= 3,
-                "selling_fast": predictions.get(item, 0) >= 15
+                "trending": counts.get(item, 0) >= 1,
+                "selling_fast": predictions.get(item, 0) >= 5
             }
 
         return result

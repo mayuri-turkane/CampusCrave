@@ -2,7 +2,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from models import db, User, Menu, Order, OrderItem, Group, GroupMember
+from models import db, User, Menu, Order, OrderItem, Group, GroupMember, MemberPayment
+import os
+import razorpay
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +17,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
+load_dotenv()
+
+razorpay_client = razorpay.Client(auth=(os.getenv("RAZORPAY_KEY_ID"), os.getenv("RAZORPAY_KEY_SECRET")))
 
 # ✅ USER REGISTRATION
 @app.route("/register", methods=["POST"])
@@ -212,10 +218,10 @@ def place_order():
     group_id = data.get("group_id")
 
     order = Order(
-      user_id=user.id,
-      total_price=data.get("total_price", 0),
-      group_id=group_id   #
-)
+        user_id=user.id,
+        total_price=data.get("total_price", 0),
+        group_id=group_id   #
+    )
     db.session.add(order)
     db.session.commit()
 
@@ -314,6 +320,178 @@ def analytics_predict():
     analytics = CampusCraveAnalytics()
     result = analytics.run()
     return jsonify(result)
+
+
+@app.route("/create-razorpay-order", methods=["POST"])
+def create_razorpay_order():
+    data = request.json
+    # Razorpay expects amount in paise (1 INR = 100 paise)
+    amount = int(float(data.get("amount")) * 100)
+
+    order_data = {
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1  # Auto-capture payment after success
+    }
+
+    try:
+        razorpay_order = razorpay_client.order.create(data=order_data)
+        return jsonify(razorpay_order)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/verify-payment", methods=["POST"])
+def verify_payment():
+    data = request.json
+
+    # 1. Verify Razorpay Signature
+    params_dict = {
+        'razorpay_order_id': data['razorpay_order_id'],
+        'razorpay_payment_id': data['razorpay_payment_id'],
+        'razorpay_signature': data['razorpay_signature']
+    }
+
+    try:
+        # This will raise an error if the signature is invalid
+        razorpay_client.utility.verify_payment_signature(params_dict)
+
+        # 2. Signature valid! Now save the order to your MySQL Database
+        user_email = data.get("email")
+        user = User.query.filter_by(email=user_email).first()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        order = Order(
+            user_id=user.id,
+            total_price=data.get("total_price"),
+            group_id=data.get("group_id")
+        )
+        db.session.add(order)
+        db.session.commit()
+
+        for item in data.get("items", []):
+            order_item = OrderItem(
+                order_id=order.id,
+                item_name=item["name"],
+                quantity=item.get("qty", 1),
+                price=item["price"]
+            )
+            db.session.add(order_item)
+
+        db.session.commit()
+        return jsonify({"message": "Payment verified and order placed!", "order_id": order.id}), 201
+
+    except Exception as e:
+        print("Signature Verification Failed:", str(e))
+        return jsonify({"error": "Payment verification failed"}), 400
+
+
+@app.route("/create-partial-payment", methods=["POST"])
+def create_partial_payment():
+    data = request.json
+    # Amount for just THIS specific member
+    amount = int(float(data.get("share_amount")) * 100)
+
+    razorpay_order = razorpay_client.order.create({
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+    return jsonify(razorpay_order)
+
+
+# ✅ 1. INITIALIZE GROUP ORDER (NEW)
+@app.route("/init-group-order", methods=["POST"])
+def init_group_order():
+    data = request.json
+    user_email = data.get("email")
+    group_id = data.get("group_id")
+
+    user = User.query.filter_by(email=user_email).first()
+
+    # Check if a pending order already exists for this group to avoid duplicates
+    existing_order = Order.query.filter_by(group_id=group_id, status=0).first()
+
+    if not existing_order:
+        # Create the Main Order (Status 0 = Pending)
+        new_order = Order(
+            user_id=user.id,
+            total_price=data.get("total_price"),
+            group_id=group_id,
+            status=0
+        )
+        db.session.add(new_order)
+        db.session.commit()
+
+        # Create Payment Slots for every member in the squad
+        for m_name in data.get("members", []):
+            payment_slot = MemberPayment(
+                order_id=new_order.id,
+                member_name=m_name,
+                share_amount=0,  # Optional: update if you want to store share in DB
+                is_paid=False
+            )
+            db.session.add(payment_slot)
+
+        # Add items to the order
+        for item in data.get("items", []):
+            order_item = OrderItem(
+                order_id=new_order.id,
+                item_name=item["name"],
+                quantity=item.get("qty", 1),
+                price=item["price"]
+            )
+            db.session.add(order_item)
+
+        db.session.commit()
+        return jsonify({"order_id": new_order.id}), 201
+
+    return jsonify({"order_id": existing_order.id}), 200
+
+
+# ✅ 2. VERIFY PARTIAL PAYMENT (UPDATED)
+@app.route("/verify-partial-payment", methods=["POST"])
+def verify_partial_payment():
+    data = request.json
+
+    # Signature Verification
+    params_dict = {
+        'razorpay_order_id': data['razorpay_order_id'],
+        'razorpay_payment_id': data['razorpay_payment_id'],
+        'razorpay_signature': data['razorpay_signature']
+    }
+
+    try:
+        razorpay_client.utility.verify_payment_signature(params_dict)
+
+        # Update the specific member's payment record
+        payment_record = MemberPayment.query.filter_by(
+            order_id=data['order_id'],
+            member_name=data['member_name']
+        ).first()
+
+        if payment_record:
+            payment_record.is_paid = True
+            payment_record.payment_id = data['razorpay_payment_id']
+            db.session.commit()
+
+        # Check if EVERYONE in this order has paid
+        remaining = MemberPayment.query.filter_by(order_id=data['order_id'], is_paid=False).count()
+
+        if remaining == 0:
+            # All members paid! Confirm the order
+            order = Order.query.get(data['order_id'])
+            order.status = 1  # Mark as confirmed
+            db.session.commit()
+            return jsonify({"status": "order_completed"}), 200
+
+        return jsonify({"status": "partial_success", "remaining": remaining}), 200
+
+    except Exception as e:
+        print("Partial Payment Verification Failed:", str(e))
+        return jsonify({"error": "Payment verification failed"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)

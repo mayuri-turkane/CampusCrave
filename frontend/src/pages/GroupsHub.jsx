@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import {
     ChevronLeft, Users2, ArrowRight, Clock, Plus, Zap,
@@ -15,6 +15,35 @@ function GroupsHub({ groups, setGroups }) {
     const [memberInput, setMemberInput] = useState("");
     const [members, setMembers] = useState([]);
     const [memberError, setMemberError] = useState("");
+     const user = JSON.parse(localStorage.getItem("user"));
+
+    // --- 1. FETCH GROUPS ON LOAD ---
+    useEffect(() => {
+        console.log("ffsdvsfgvrg")
+        const fetchGroups = async () => {
+
+            if (!user) return;
+
+            try {
+                const res = await fetch(`http://localhost:5000/groups/${user.id}`);
+                const data = await res.json();
+                console.log("API DATA:", data);
+                // ✅ Re-insert "You" so the Cart logic stays happy
+                const formatted = data.map(g => ({
+                    ...g,
+                    members: ["You", ...g.members],
+                    status: "Active",
+                    totalSpent: 0
+                }));
+
+                setGroups(formatted);
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        };
+
+        fetchGroups();
+    }, []);
 
     // --- LOGIC FUNCTIONS ---
     const addMember = () => {
@@ -52,38 +81,51 @@ function GroupsHub({ groups, setGroups }) {
         }
     };
 
-    const handleCreateGroup = () => {
-        if (!groupName.trim()) {
-            alert("Please name your squad! ✍️");
-            return;
-        }
+    const handleCreateGroup = async () => {
+    if (!groupName.trim()) {
+        alert("Please name your squad! ✍️");
+        return;
+    }
 
-        if (editingGroupId) {
-            // UPDATE LOGIC
-            setGroups(prev => prev.map(g =>
-                g.id === editingGroupId
-                ? { ...g, name: groupName.trim(), members: ["You", ...members.map(m => m.trim())] }
-                : g
-            ));
-        } else {
-            // CREATE LOGIC
-            const newGroup = {
-                id: Date.now(),
+    // ✅ FIX: Only send the friends to the backend.
+    // We don't send "You" because the backend already knows
+    // who created the group via user_id.
+    const friendList = members.map(m => m.trim());
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/create-group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
                 name: groupName.trim(),
-                members: ["You", ...members.map(m => m.trim())],
+                user_id: user.id, // This links YOU to the group
+                members: friendList // Just the friends
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            // Update local state for the UI
+            const newGroup = {
+                id: result.group_id,
+                name: groupName.trim(),
+                members: friendList, // Store friends here
                 totalSpent: 0,
                 status: "Active"
             };
-            setGroups(prevGroups => [newGroup, ...prevGroups]);
-        }
 
-        // Reset and close
-        setGroupName("");
-        setMembers([]);
-        setMemberInput("");
-        setEditingGroupId(null);
-        setShowGroupModal(false);
-    };
+            setGroups(prevGroups => [newGroup, ...prevGroups]);
+
+            // Reset
+            setGroupName("");
+            setMembers([]);
+            setShowGroupModal(false);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+};
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans selection:bg-indigo-100">

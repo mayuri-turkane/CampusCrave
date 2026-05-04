@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Utensils, Coffee, Zap, Star, ArrowRight, ShoppingBag, Users2, Plus, X, UserPlus, Check, Sparkles, TrendingUp } from "lucide-react";
+import { Utensils, Coffee, Zap, Star, ArrowRight, ShoppingBag, Users2, Plus, X, UserPlus, Sparkles, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 function Dashboard({ cart, groups, setGroups }) {
@@ -12,17 +12,15 @@ function Dashboard({ cart, groups, setGroups }) {
   const [members, setMembers] = useState([]);
   const [memberError, setMemberError] = useState("");
 
-const addMember = () => {
-  if (memberInput.trim() === "") {
-    setMemberError("Please enter a name first! ✍️");
-    return; // Stop here
-  }
-
-  // If it's not empty, add the member and clear errors
-  setMembers([...members, memberInput.trim()]);
-  setMemberInput("");
-  setMemberError(""); // Clear the error
-};
+  const addMember = () => {
+    if (memberInput.trim() === "") {
+      setMemberError("Please enter a name first! ✍️");
+      return;
+    }
+    setMembers([...members, memberInput.trim()]);
+    setMemberInput("");
+    setMemberError("");
+  };
 
   const removeMember = (indexToRemove) => {
     setMembers(members.filter((_, index) => index !== indexToRemove));
@@ -35,12 +33,9 @@ const addMember = () => {
 
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-
       const res = await fetch("http://localhost:5000/create-group", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: groupName,
           user_id: user.id,
@@ -52,20 +47,18 @@ const addMember = () => {
 
       if (res.ok) {
         const newGroup = {
-          id: data.group_id, // ✅ real DB id
+          id: data.group_id,
           name: groupName,
           members: ["You", ...members],
           totalSpent: 0,
           status: "Active"
         };
-
         setGroups(prev => [...prev, newGroup]);
         setShowGroupModal(false);
         navigate("/groups");
       } else {
         alert(data.error || "Error creating group");
       }
-
     } catch (err) {
       console.error(err);
       alert("Server error");
@@ -79,7 +72,6 @@ const addMember = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans selection:bg-orange-100">
-
       {/* --- BACKGROUND DECOR --- */}
       <div className="fixed inset-0 pointer-events-none opacity-40">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-100 rounded-full blur-[120px]" />
@@ -87,46 +79,58 @@ const addMember = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 pt-32 relative z-10">
-
         {/* --- HEADER --- */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <button
-              onClick={() => navigate("/view-cart")}
-              className="group cursor-pointer bg-white p-5 rounded-[2rem] flex items-center gap-5 shadow-xl shadow-indigo-100 border border-indigo-50 hover:border-indigo-200 transition-all active:scale-95"
-          >
-            <div className="relative">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
-                <Zap size={24} fill="currentColor" />
+        <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+
+          {/* LEFT: BASKET TOTAL (Swapped) */}
+          <div className="order-2 md:order-1 flex items-center gap-4">
+            {cart.length > 0 ? (
+              <div
+                onClick={() => navigate("/cart")}
+                className="group cursor-pointer bg-white p-5 rounded-[2rem] flex items-center gap-5 shadow-xl shadow-orange-100 border border-orange-50 hover:border-orange-200 hover:-translate-y-1 transition-all"
+              >
+                <div className="bg-gradient-to-br from-orange-500 to-red-500 text-white p-3 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <ShoppingBag size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Basket Total</p>
+                  <p className="text-2xl font-black text-slate-800 tracking-tight">₹{cartTotal}</p>
+                </div>
               </div>
-              {/* Simple notification dot to show "Live" status */}
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white rounded-full animate-pulse" />
-            </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Tracking</p>
-              <p className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                My Orders <ArrowRight size={16} className="text-indigo-500 group-hover:translate-x-1 transition-transform" />
-              </p>
-            </div>
-          </button>
-          <div className="animate-in slide-in-from-left duration-700">
-            <div className="flex items-center gap-2 mb-2">
+            ) : (
+              <div className="h-20" /> /* Spacer when cart is empty */
+            )}
+          </div>
+
+          {/* CENTER: TITLE */}
+          <div className="order-1 md:order-2 text-center md:text-left animate-in slide-in-from-top duration-700">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
               <span className="h-1 w-8 bg-orange-500 rounded-full" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Campus Dining Hub</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter leading-none">
-              Hungry, <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-500">Student?</span>
+              Hungry, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-500">Student?</span>
             </h1>
           </div>
 
-          {cart.length > 0 && (
-            <div onClick={() => navigate("/cart")} className="cursor-pointer bg-white p-5 rounded-[2rem] flex items-center gap-5 shadow-2xl shadow-orange-100 border border-orange-50 hover:scale-105 transition-transform animate-in zoom-in duration-500">
-              <div className="bg-gradient-to-br from-orange-500 to-red-500 text-white p-3 rounded-2xl shadow-lg"><ShoppingBag size={24} /></div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Basket Total</p>
-                <p className="text-2xl font-black text-slate-800 tracking-tight">₹{cartTotal}</p>
-              </div>
+          {/* RIGHT: LIVE TRACKING (Swapped) */}
+          <button
+            onClick={() => navigate("/view-cart")}
+            className="order-3 group cursor-pointer bg-white p-5 rounded-[2rem] flex items-center gap-5 shadow-xl shadow-indigo-100 border border-indigo-50 hover:border-indigo-200 transition-all active:scale-95"
+          >
+            <div className="hidden sm:block text-right">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Tracking</p>
+              <p className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2 justify-end">
+                My Orders <ArrowRight size={16} className="text-indigo-500 group-hover:translate-x-1 transition-transform" />
+              </p>
             </div>
-          )}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-3 rounded-2xl shadow-lg group-hover:rotate-12 transition-transform">
+                <Zap size={24} fill="currentColor" />
+              </div>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white rounded-full animate-pulse" />
+            </div>
+          </button>
         </div>
 
         {/* --- HERO BANNER --- */}
@@ -154,20 +158,19 @@ const addMember = () => {
                  <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full" />
                  <div className="relative bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] rotate-3 hover:rotate-0 transition-transform duration-500">
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 bg-orange-500 rounded-full border-4 border-slate-900" />
-                      <div className="w-12 h-12 bg-indigo-500 rounded-full -ml-8 border-4 border-slate-900" />
-                      <div className="w-12 h-12 bg-emerald-500 rounded-full -ml-8 border-4 border-slate-900" />
-                      <div className="bg-slate-800 h-10 px-4 rounded-full flex items-center text-xs font-bold">+4 friends</div>
+                      <div className="w-12 h-12 bg-orange-500 rounded-full border-4 border-slate-900 shadow-xl" />
+                      <div className="w-12 h-12 bg-indigo-500 rounded-full -ml-6 border-4 border-slate-900 shadow-xl" />
+                      <div className="w-12 h-12 bg-emerald-500 rounded-full -ml-6 border-4 border-slate-900 shadow-xl" />
+                      <div className="bg-slate-800 h-10 px-4 rounded-full flex items-center text-xs font-bold border border-white/10">+4 friends</div>
                     </div>
                     <div className="space-y-3">
                       <div className="h-3 w-32 bg-white/20 rounded-full" />
                       <div className="h-3 w-48 bg-white/10 rounded-full" />
-                      <div className="h-8 w-full bg-indigo-500/40 rounded-xl mt-4" />
+                      <div className="h-8 w-full bg-indigo-500/40 rounded-xl mt-4 border border-white/10" />
                     </div>
                  </div>
               </div>
             </div>
-            {/* Background pattern */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent" />
           </div>
         </div>
@@ -186,7 +189,7 @@ const addMember = () => {
             <div
               key={canteen.id}
               onClick={() => navigate(canteen.path)}
-              className={`group relative bg-white rounded-[3rem] p-8 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-12 delay-${idx * 100}`}
+              className="group relative bg-white rounded-[3rem] p-8 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer border border-slate-100 overflow-hidden"
             >
               <div className="flex flex-col h-full relative z-10">
                 <div className="flex justify-between items-start mb-10">
@@ -210,13 +213,11 @@ const addMember = () => {
                   <span className="text-xs font-black uppercase tracking-[0.2em] text-orange-600 flex items-center gap-2 group-hover:gap-4 transition-all">
                     Browse Full Menu <ArrowRight size={16} />
                   </span>
-                  <div className="w-20 h-20 rounded-2xl overflow-hidden opacity-10 group-hover:opacity-100 transition-opacity duration-700 rotate-6 group-hover:rotate-0 scale-150 group-hover:scale-100">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden opacity-10 group-hover:opacity-100 transition-opacity duration-700 rotate-6 group-hover:rotate-0 scale-150 group-hover:scale-100 shadow-2xl">
                     <img src={canteen.image} alt="Canteen preview" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>
-
-              {/* Decorative Circle */}
               <div className={`absolute -bottom-12 -right-12 w-48 h-48 bg-gradient-to-br ${canteen.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full transition-all duration-700 scale-0 group-hover:scale-100`} />
             </div>
           ))}
@@ -225,19 +226,19 @@ const addMember = () => {
         {/* --- FOOTER PROMO --- */}
         <div className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-orange-500 to-red-600 p-8 md:p-12 text-white shadow-2xl">
            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-8">
-              <div>
-                 <h4 className="text-3xl font-black tracking-tight mb-2 uppercase italic">Friday Feast! 🥘</h4>
-                 <p className="text-orange-50 font-medium text-lg opacity-90">Maharaja Thali Special available today for just ₹75.</p>
-              </div>
-              <button onClick={() => navigate("/main-canteen/thali")} className="bg-white text-orange-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 transition-all active:scale-95">
-                Order Thali Now
-              </button>
+             <div>
+                <h4 className="text-3xl font-black tracking-tight mb-2 uppercase italic">Friday Feast! 🥘</h4>
+                <p className="text-orange-50 font-medium text-lg opacity-90">Maharaja Thali Special available today for just ₹75.</p>
+             </div>
+             <button onClick={() => navigate("/main-canteen/thali")} className="bg-white text-orange-600 px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 transition-all active:scale-95">
+               Order Thali Now
+             </button>
            </div>
            <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl font-black -rotate-12 select-none">DELICIOUS</div>
         </div>
       </div>
 
-      {/* --- MODAL (Enhanced Styles) --- */}
+      {/* --- MODAL --- */}
       {showGroupModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={() => setShowGroupModal(false)} />
@@ -256,65 +257,42 @@ const addMember = () => {
                 <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Lunch Legends 🍟" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 font-bold focus:border-indigo-500 focus:bg-white transition-all outline-none" />
               </div>
 
-                <div>
-                    <label
-                        className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1 mb-2 block">
-                        Add Teammates
-                    </label>
-                    <div className="flex gap-3">
-                        <input
-                            type="text"
-                            value={memberInput}
-                            onChange={(e) => {
-                                setMemberInput(e.target.value);
-                                if (memberError) setMemberError(""); // Clear error while typing
-                            }}
-                            onKeyPress={(e) => e.key === 'Enter' && addMember()}
-                            placeholder="Friend's name..."
-                            className={`flex-1 bg-slate-50 border-2 rounded-2xl px-6 py-4 font-bold transition-all outline-none ${
-                                memberError ? 'border-red-400 bg-red-50' : 'border-slate-100 focus:border-indigo-500'
-                            }`}
-                        />
-                        <button
-                            onClick={addMember}
-                            className="bg-indigo-600 text-white px-5 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg active:scale-90"
-                        >
-                            <UserPlus size={22}/>
-                        </button>
-                    </div>
-
-                    {/* 🔥 THE ERROR LINE */}
-                    {memberError && (
-                        <p className="text-red-500 text-[11px] font-bold mt-2 ml-2 animate-bounce">
-                            {memberError}
-                        </p>
-                    )}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 ml-1 mb-2 block">Add Teammates</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={memberInput}
+                    onChange={(e) => {
+                      setMemberInput(e.target.value);
+                      if (memberError) setMemberError("");
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && addMember()}
+                    placeholder="Friend's name..."
+                    className={`flex-1 bg-slate-50 border-2 rounded-2xl px-6 py-4 font-bold transition-all outline-none ${memberError ? 'border-red-400 bg-red-50' : 'border-slate-100 focus:border-indigo-500'}`}
+                  />
+                  <button onClick={addMember} className="bg-indigo-600 text-white px-5 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg active:scale-90">
+                    <UserPlus size={22}/>
+                  </button>
                 </div>
+                {memberError && <p className="text-red-500 text-[11px] font-bold mt-2 ml-2 animate-bounce">{memberError}</p>}
+              </div>
 
-              {/* Display: Member List - Now with a cleaner "Review" look */}
-                {members.length > 0 && (
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 block">
-                      Squad Members ({members.length})
-                    </label>
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1 custom-scrollbar">
-                      {members.map((m, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 bg-white border-2 border-indigo-100 text-indigo-600 pl-4 pr-2 py-2 rounded-2xl animate-in zoom-in slide-in-from-top-2 duration-300 shadow-sm"
-                        >
-                          <span className="text-xs font-black tracking-tight">{m}</span>
-                          <button
-                            onClick={() => removeMember(idx)}
-                            className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+              {members.length > 0 && (
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 block">Squad Members ({members.length})</label>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+                    {members.map((m, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-white border-2 border-indigo-100 text-indigo-600 pl-4 pr-2 py-2 rounded-2xl shadow-sm">
+                        <span className="text-xs font-black tracking-tight">{m}</span>
+                        <button onClick={() => removeMember(idx)} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
               <button onClick={handleCreateGroup} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 transition-all mt-4 active:scale-95">
                 Confirm & Create Squad
